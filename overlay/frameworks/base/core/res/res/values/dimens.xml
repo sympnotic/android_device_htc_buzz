@@ -1,6 +1,4 @@
 <resources>
     <dimen name="thumbnail_width">240dp</dimen>
     <dimen name="thumbnail_height">240dp</dimen>
-    <dimen name="notification_large_icon_width">32dp</dimen>
-    <dimen name="notification_large_icon_height">32dp</dimen>
 </resources>
