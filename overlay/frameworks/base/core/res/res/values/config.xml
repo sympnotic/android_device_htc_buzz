@@ -73,9 +73,6 @@
         <item>4</item>
         <item>5</item>
         <item>7</item>
-        <item>"rmnet\\d"</item>
-        <item>"rmnet_sdio\\d"</item>
-        <item>"eth\\d"</item>
     </integer-array>
 
     <!-- Flag indicating whether the we should enable the automatic brightness in Settings.
