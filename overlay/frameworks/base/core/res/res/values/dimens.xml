@@ -1,4 +1,14 @@
 <resources>
     <dimen name="thumbnail_width">240dp</dimen>
     <dimen name="thumbnail_height">240dp</dimen>
+
+    <!-- Default height of a key in the password keyboard for alpha (used by keyguard) -->
+    <dimen name="password_keyboard_key_height_alpha">45dip</dimen>
+    <!-- Default height of a key in the password keyboard for numeric (used by keyguard) -->
+    <dimen name="password_keyboard_key_height_numeric">45dip</dimen>
+    <!-- Default vertical gap between keys in the password keyboard (used by keyguard) -->
+    <dimen name="password_keyboard_verticalGap">5dip</dimen>
+
+    <!-- The default gap between components in a layout. -->
+    <dimen name="default_gap">10dip</dimen>
 </resources>
