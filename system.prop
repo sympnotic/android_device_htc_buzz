@@ -84,3 +84,6 @@ persist.sys.usb.config=mass_storage,adb
 
 # Enable debug mode by default
 persist.service.adb.enable=1
+
+# enable software decoder for video
+sys.media.vdec.sw=1
