@@ -8,7 +8,4 @@
     <dimen name="password_keyboard_key_height_numeric">25dip</dimen>
     <!-- Default vertical gap between keys in the password keyboard (used by keyguard) -->
     <dimen name="password_keyboard_verticalGap">5dip</dimen>
-
-    <!-- The default gap between components in a layout. -->
-    <dimen name="default_gap">10dip</dimen>
 </resources>
