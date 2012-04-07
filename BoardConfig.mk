@@ -55,6 +55,11 @@ WIFI_DRIVER_FW_PATH_AP           := "/vendor/firmware/fw_bcm4329_apsta.bin"
 WIFI_DRIVER_MODULE_ARG           := "iface_name=wlan0 firmware_path=/vendor/firmware/fw_bcm4329.bin nvram_path=/proc/calibration"
 WIFI_DRIVER_MODULE_NAME          := "bcm4329"
 
+# prevent breakage from QCOM_HARDWARE in system/audio.h
+COMMON_GLOBAL_CFLAGS += -DLEGACY_AUDIO_COMPAT
+# Allow fallback to ashmem
+TARGET_GRALLOC_USES_ASHMEM := true
+
 BOARD_KERNEL_CMDLINE := no_console_suspend=1 console=null
 BOARD_KERNEL_BASE := 0x02E00000
 BOARD_KERNEL_PAGESIZE := 2048
