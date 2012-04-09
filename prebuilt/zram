@@ -1,0 +1,17 @@
+#!/system/bin/sh
+#
+#zram handler script from rallapag
+# 
+
+MEMTOTAL=$( awk '{ if ($1 eq "MemTotal:") print $2 ;exit }' < /proc/meminfo )
+PROP=`getprop ro.zram.default`
+CCSIZE=$(($(($MEMTOTAL * $PROP)) / 100))
+
+DEV=/dev/block/zram0
+SYSFS_PATH=/sys/block/zram0
+
+echo 3 > /proc/sys/vm/drop_caches
+echo 30 > /proc/sys/vm/swappiness
+echo "$CCSIZE" > $SYSFS_PATH/disksize
+mkswap $DEV > /dev/null
+swapon $DEV
