@@ -16,7 +16,7 @@
 $(call inherit-product, $(LOCAL_PATH)/buzz.mk)
 
 # Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_full_phone.mk)
+$(call inherit-product, vendor/cm/config/common_tiny_phone.mk)
 $(call inherit-product, vendor/cm/config/gsm.mk)
 
 # Setup device configuration
@@ -26,7 +26,7 @@ PRODUCT_DEVICE := buzz
 PRODUCT_BRAND := HTC
 PRODUCT_MODEL := Wildfire
 PRODUCT_MANUFACTURER := HTC
-PRODUCT_BUILD_PROP_OVERRIDES += BUILD_FINGERPRINT=google/passion/passion:2.3.3/GRI40/102588:user/release-keys PRIVATE_BUILD_DESC="passion-user 2.3.3 GRI40 102588 release-keys"
+PRODUCT_BUILD_PROP_OVERRIDES += BUILD_FINGERPRINT=google/soju/crespo:4.0.4/IMM76D/299849:user/release-keys PRIVATE_BUILD_DESC="soju-user 4.0.4 IMM76D 299849 release-keys"
 
 # Release name and versioning
 PRODUCT_VERSION_DEVICE_SPECIFIC :=

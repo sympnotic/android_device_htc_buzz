@@ -73,7 +73,8 @@ sys.checkfs.fat=false
 # Performance settings.
 dalvik.vm.dexopt-data-only=1
 dalvik.vm.execution-mode=int:jit
-debug.sf.hw=0
+dalvik.vm.heapsize=24m
+debug.sf.hw=1
 ro.config.disable_hw_accel=true
 
 # Increase SKIA decode memory capability for progressive jpg file.
