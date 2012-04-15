@@ -88,4 +88,8 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.allow.mock.location=1 \
     ro.debuggable=1
 
+# Use 18% of the memory for zram
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/08zram:system/etc/init.d/08zram
+
 PRODUCT_LOCALES += mdpi
