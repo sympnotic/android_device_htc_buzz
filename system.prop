@@ -87,3 +87,43 @@ persist.service.adb.enable=1
 
 # enable software decoder for video
 sys.media.vdec.sw=1
+
+# Force Launcher into memory
+ro.HOME_APP_ADJ=1
+
+# Raise JPG quality to 100%
+ro.media.enc.jpeg.quality=100
+
+# VM Heapsize
+dalvik.vm.heapsize=32m
+
+# Decrease dialing out delay
+ro.telephony.call_ring.delay=0
+
+# Save battery
+wifi.supplicant_scan_interval=180
+pm.sleep_mode=1
+ro.ril.disable.power.collapse=0
+
+# Signal (3G) tweaks
+ro.ril.hsxpa=2
+ro.ril.gprsclass=10 
+ro.ril.hep=1
+ro.ril.enable.dtm=1
+ro.ril.hsdpa.category=10
+ro.ril.enable.a53=1
+ro.ril.enable.3g.prefix=1
+ro.ril.htcmaskw1.bitmask=4294967295
+ro.ril.htcmaskw1=14449
+ro.ril.hsupa.category=5
+
+# Net speed tweaks
+net.tcp.buffersize.default=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.wifi=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.umts=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.gprs=4096,87380,256960,4096,16384,256960
+net.tcp.buffersize.edge=4096,87380,256960,4096,16384,256960
+
+# Disable blackscreen issue after a call
+ro.lge.proximity.delay=25
+mot.proximity.delay=25
