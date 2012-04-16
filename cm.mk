@@ -16,7 +16,7 @@
 $(call inherit-product, $(LOCAL_PATH)/buzz.mk)
 
 # Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_tiny_phone.mk)
+$(call inherit-product, vendor/cm/config/common_mini_phone.mk)
 $(call inherit-product, vendor/cm/config/gsm.mk)
 
 # Setup device configuration
