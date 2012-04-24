@@ -4,6 +4,14 @@
 # http://forum.xda-developers.com/showthread.php?t=1227269
 #
 
+# One-time tweaks to apply on every boot
+STL=`ls -d /sys/block/stl*`
+BML=`ls -d /sys/block/bml*`
+MMC=`ls -d /sys/block/mmc*`
+
+# strict minfree handler tweak
+echo "2048,3072,6144,15360,17920,20480" > /sys/module/lowmemorykiller/parameters/minfree
+
 # internet speed tweaks
 echo "0" > /proc/sys/net/ipv4/tcp_timestamps;
 echo "1" > /proc/sys/net/ipv4/tcp_tw_reuse;

@@ -46,7 +46,7 @@ ro.gsm.2nd_data_retry_config=max_retries=3, 2000, 2000, 2000
 # This only affects the case in which there are remembered access points,
 # but none are in range.
 wifi.interface=wlan0
-wifi.supplicant_scan_interval=45
+wifi.supplicant_scan_interval=60
 
 # Mobile data interfaces
 mobiledata.interfaces=rmnet0,rmnet1,rmnet2
@@ -73,7 +73,7 @@ sys.checkfs.fat=false
 # Performance settings.
 dalvik.vm.dexopt-data-only=1
 dalvik.vm.execution-mode=int:jit
-dalvik.vm.heapsize=24m
+dalvik.vm.heapsize=32m
 debug.sf.hw=1
 ro.config.disable_hw_accel=true
 
@@ -95,16 +95,11 @@ ro.HOME_APP_ADJ=1
 # Raise JPG quality to 100%
 ro.media.enc.jpeg.quality=100
 
-# VM Heapsize
-dalvik.vm.heapsize=32m
-
 # Decrease dialing out delay
 ro.telephony.call_ring.delay=0
 
 # Save battery
-wifi.supplicant_scan_interval=180
 pm.sleep_mode=1
-ro.ril.disable.power.collapse=0
 
 # Signal (3G) tweaks
 ro.ril.hsxpa=2
