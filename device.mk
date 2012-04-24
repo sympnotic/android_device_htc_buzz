@@ -91,6 +91,7 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
 # init.d scripts
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/08zram:system/etc/init.d/08zram \
+    $(LOCAL_PATH)/prebuilt/77tweaks:system/etc/init.d/70prioritize \
     $(LOCAL_PATH)/prebuilt/77tweaks:system/etc/init.d/77tweaks
 
 PRODUCT_LOCALES += mdpi
