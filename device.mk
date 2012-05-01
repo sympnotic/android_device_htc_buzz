@@ -88,10 +88,18 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.allow.mock.location=1 \
     ro.debuggable=1
 
+# Fix CM9 mobile data
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/ppp/chap-secrets:system/etc/ppp/chap-secrets \
+    $(LOCAL_PATH)/prebuilt/ppp/ip-down:system/etc/ppp/ip-down \
+    $(LOCAL_PATH)/prebuilt/ppp/ip-up:system/etc/ppp/ip-up \
+    $(LOCAL_PATH)/prebuilt/ppp/options:system/etc/ppp/options \
+    $(LOCAL_PATH)/prebuilt/ppp/pap-secrets:system/etc/ppp/pap-secrets
+
 # init.d scripts
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/08zram:system/etc/init.d/08zram \
-    $(LOCAL_PATH)/prebuilt/77tweaks:system/etc/init.d/70prioritize \
+    $(LOCAL_PATH)/prebuilt/77prioritize:system/etc/init.d/70prioritize \
     $(LOCAL_PATH)/prebuilt/77tweaks:system/etc/init.d/77tweaks
 
 PRODUCT_LOCALES += mdpi
