@@ -101,18 +101,6 @@ ro.telephony.call_ring.delay=0
 # Save battery
 pm.sleep_mode=1
 
-# Signal (3G) tweaks
-ro.ril.hsxpa=2
-ro.ril.gprsclass=10 
-ro.ril.hep=1
-ro.ril.enable.dtm=1
-ro.ril.hsdpa.category=10
-ro.ril.enable.a53=1
-ro.ril.enable.3g.prefix=1
-ro.ril.htcmaskw1.bitmask=4294967295
-ro.ril.htcmaskw1=14449
-ro.ril.hsupa.category=5
-
 # Net speed tweaks
 net.tcp.buffersize.default=4096,87380,256960,4096,16384,256960
 net.tcp.buffersize.wifi=4096,87380,256960,4096,16384,256960
