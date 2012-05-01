@@ -15,6 +15,21 @@ view.touch_slop=15
 view.minimum_fling_velocity=25
 view.scroll_friction=0.008
 
+# RIL specific configuration.
+rild.libpath=/system/lib/libhtc_ril.so
+ro.ril.ecc.HTC-WWE=999
+ro.ril.ecc.HTC-ELL=92,93,94
+ro.ril.enable.a52.HTC-ITA=1
+ro.ril.enable.a53.HTC-ITA=1
+ro.ril.enable.a52=0
+ro.ril.enable.a53=1
+ro.ril.vmail.23415=1571,BT
+ro.ril.hsdpa.category=8
+ro.ril.htcmaskw1.bitmask=4294967295
+ro.ril.htcmaskw1=14449
+ro.ril.def.agps.mode=2
+ro.ril.gprsclass=12
+
 # For HSDPA low throughput
 ro.ril.disable.power.collapse=1
 
@@ -33,8 +48,16 @@ ro.gsm.2nd_data_retry_config=max_retries=3, 2000, 2000, 2000
 wifi.interface=wlan0
 wifi.supplicant_scan_interval=60
 
+# Mobile data interfaces
+mobiledata.interfaces=rmnet0,rmnet1,rmnet2
+
 # Allow or deny tethering.
 ro.tether.denied=false
+
+# Default network type.
+# 0 => WCDMA Preferred.
+ro.telephony.default_network=0
+ro.telephony.ril.v3=signalstrength
 
 # Enable Google-specific location features,
 # like NetworkLocationProvider and LocationCollector.
@@ -77,6 +100,18 @@ ro.telephony.call_ring.delay=0
 
 # Save battery
 pm.sleep_mode=1
+
+# Signal (3G) tweaks
+ro.ril.hsxpa=2
+ro.ril.gprsclass=10 
+ro.ril.hep=1
+ro.ril.enable.dtm=1
+ro.ril.hsdpa.category=10
+ro.ril.enable.a53=1
+ro.ril.enable.3g.prefix=1
+ro.ril.htcmaskw1.bitmask=4294967295
+ro.ril.htcmaskw1=14449
+ro.ril.hsupa.category=5
 
 # Net speed tweaks
 net.tcp.buffersize.default=4096,87380,256960,4096,16384,256960
