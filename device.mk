@@ -66,6 +66,7 @@ PRODUCT_PACKAGES += \
     gralloc.buzz \
     copybit.buzz \
     gps.buzz \
+    camera.buzz \
     audio.primary.buzz \
     audio_policy.buzz \
     audio.a2dp.default \
