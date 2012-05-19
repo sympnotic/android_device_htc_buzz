@@ -12,6 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Setup device configuration
+PRODUCT_NAME := cm_buzz
+PRODUCT_RELEASE_NAME := buzz
+PRODUCT_DEVICE := buzz
+PRODUCT_BRAND := HTC
+PRODUCT_MODEL := Wildfire
+PRODUCT_MANUFACTURER := HTC
+PRODUCT_BUILD_PROP_OVERRIDES += BUILD_FINGERPRINT=google/soju/crespo:4.0.4/IMM76D/299849:user/release-keys PRIVATE_BUILD_DESC="soju-user 4.0.4 IMM76D 299849 release-keys"
+
+# Release name and versioning
+PRODUCT_VERSION_DEVICE_SPECIFIC :=
+
+# kernel (TODO: compile at build)
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 LOCAL_KERNEL := $(LOCAL_PATH)/prebuilt/kernel
 else
@@ -21,10 +34,67 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
 
-$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
+# Include device specific overlays
+	DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
 
-# Inherit from buzz device
-$(call inherit-product, $(LOCAL_PATH)/device.mk)
+# DPI size for Buzz
+	PRODUCT_LOCALES += mdpi
+	
+# Input device calibration files
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/atmel-touchscreen.idc:system/usr/idc/atmel-touchscreen.idc \
+    $(LOCAL_PATH)/curcial-oj.idc:system/usr/idc/curcial-oj.idc \
+    $(LOCAL_PATH)/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc
+
+# Keychars and keylayout files
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/keyfiles/atmel-touchscreen.kl:system/usr/keylayout/atmel-touchscreen.kl \
+    $(LOCAL_PATH)/keyfiles/atmel-touchscreen.kcm:system/usr/keychars/atmel-touchscreen.kcm \
+    $(LOCAL_PATH)/keyfiles/synaptics-rmi-touchscreen.kl:system/usr/keylayout/synaptics-rmi-touchscreen.kl \
+    $(LOCAL_PATH)/keyfiles/synaptics-rmi-touchscreen.kcm:system/usr/keychars/synaptics-rmi-touchscreen.kcm \
+    $(LOCAL_PATH)/keyfiles/buzz-keypad.kl:system/usr/keylayout/buzz-keypad.kl \
+    $(LOCAL_PATH)/keyfiles/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
+
+# Bluetooth cfg file & BCM4329 firmware and module
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/firmware/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
+    $(LOCAL_PATH)/prebuilt/bcm4329.ko:root/lib/modules/bcm4329.ko \
+    system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
+
+# Module compiled for Buzz
+PRODUCT_PACKAGES += \
+    librs_jni \
+    lights.buzz \
+    sensors.buzz \
+    gralloc.buzz \
+    copybit.buzz \
+    gps.buzz \
+    camera.buzz \
+    audio.primary.buzz \
+    audio_policy.buzz \
+    audio.a2dp.default \
+    libstagefrighthw \
+    libmm-omxcore \
+    libOmxCore \
+    libOmxVidEnc \
+    com.android.future.usb.accessory
+
+PRODUCT_PACKAGES += \
+    Torch
+
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/init.buzz.rc:root/init.buzz.rc \
+    $(LOCAL_PATH)/init.buzz.usb.rc:root/init.buzz.usb.rc \
+    $(LOCAL_PATH)/ueventd.buzz.rc:root/ueventd.buzz.rc \
+    $(LOCAL_PATH)/vold.fstab:system/etc/vold.fstab
+
+# TWEAKS: init.d scripts
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/08zram:system/etc/init.d/08zram \
+    $(LOCAL_PATH)/prebuilt/70prioritize:system/etc/init.d/70prioritize \
+    $(LOCAL_PATH)/prebuilt/77tweaks:system/etc/init.d/77tweaks
+	
+$(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
 # The gps config appropriate for this device
 $(call inherit-product, device/common/gps/gps_eu_supl.mk)
