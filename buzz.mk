@@ -12,18 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Setup device configuration
-PRODUCT_NAME := cm_buzz
-PRODUCT_RELEASE_NAME := buzz
-PRODUCT_DEVICE := buzz
-PRODUCT_BRAND := HTC
-PRODUCT_MODEL := Wildfire
-PRODUCT_MANUFACTURER := HTC
-PRODUCT_BUILD_PROP_OVERRIDES += BUILD_FINGERPRINT=google/soju/crespo:4.0.4/IMM76D/299849:user/release-keys PRIVATE_BUILD_DESC="soju-user 4.0.4 IMM76D 299849 release-keys"
-
-# Release name and versioning
-PRODUCT_VERSION_DEVICE_SPECIFIC :=
-
 # kernel (TODO: compile at build)
 ifeq ($(TARGET_PREBUILT_KERNEL),)
 LOCAL_KERNEL := $(LOCAL_PATH)/prebuilt/kernel
