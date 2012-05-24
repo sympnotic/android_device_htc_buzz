@@ -54,6 +54,7 @@ PRODUCT_PACKAGES += \
     librs_jni \
     lights.buzz \
     sensors.buzz \
+    gralloc.buzz \
     copybit.buzz \
     gps.buzz \
     camera.buzz \
