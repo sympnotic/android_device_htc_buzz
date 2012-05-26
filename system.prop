@@ -111,3 +111,6 @@ net.tcp.buffersize.edge=4096,87380,256960,4096,16384,256960
 # Disable blackscreen issue after a call
 ro.lge.proximity.delay=25
 mot.proximity.delay=25
+
+# disable metadata to enable recording
+debug.camcorder.disablemeta=1
