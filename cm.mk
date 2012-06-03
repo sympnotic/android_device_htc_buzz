@@ -51,8 +51,8 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
 	
 # Media configuration xml file & CM FileManager apk
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/media_profiles.xml:/system/etc/media_profiles.xml \
-    $(LOCAL_PATH)/prebuilt/FileManager.apk:system/app/FileManager.apk
+    $(LOCAL_PATH)/prebuilt/media_profiles.xml:/system/etc/media_profiles.xml \
+    $(LOCAL_PATH)/prebuilt/apk/FileManager.apk:system/app/FileManager.apk
 
 # Permissions support files
 PRODUCT_COPY_FILES += \
