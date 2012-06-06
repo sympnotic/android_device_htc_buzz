@@ -30,18 +30,18 @@ PRODUCT_COPY_FILES += \
 	
 # Input device calibration files
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/atmel-touchscreen.idc:system/usr/idc/atmel-touchscreen.idc \
-    $(LOCAL_PATH)/curcial-oj.idc:system/usr/idc/curcial-oj.idc \
-    $(LOCAL_PATH)/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc
+    $(LOCAL_PATH)/prebuilt/touchscreen/atmel-touchscreen.idc:system/usr/idc/atmel-touchscreen.idc \
+    $(LOCAL_PATH)/prebuilt/touchscreen/curcial-oj.idc:system/usr/idc/curcial-oj.idc \
+    $(LOCAL_PATH)/prebuilt/touchscreen/synaptics-rmi-touchscreen.idc:system/usr/idc/synaptics-rmi-touchscreen.idc
 
 # Keychars and keylayout files
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/keyfiles/atmel-touchscreen.kl:system/usr/keylayout/atmel-touchscreen.kl \
-    $(LOCAL_PATH)/keyfiles/atmel-touchscreen.kcm:system/usr/keychars/atmel-touchscreen.kcm \
-    $(LOCAL_PATH)/keyfiles/synaptics-rmi-touchscreen.kl:system/usr/keylayout/synaptics-rmi-touchscreen.kl \
-    $(LOCAL_PATH)/keyfiles/synaptics-rmi-touchscreen.kcm:system/usr/keychars/synaptics-rmi-touchscreen.kcm \
-    $(LOCAL_PATH)/keyfiles/buzz-keypad.kl:system/usr/keylayout/buzz-keypad.kl \
-    $(LOCAL_PATH)/keyfiles/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
+    $(LOCAL_PATH)/prebuilt/keyfiles/atmel-touchscreen.kl:system/usr/keylayout/atmel-touchscreen.kl \
+    $(LOCAL_PATH)/prebuilt/keyfiles/atmel-touchscreen.kcm:system/usr/keychars/atmel-touchscreen.kcm \
+    $(LOCAL_PATH)/prebuilt/keyfiles/synaptics-rmi-touchscreen.kl:system/usr/keylayout/synaptics-rmi-touchscreen.kl \
+    $(LOCAL_PATH)/prebuilt/keyfiles/synaptics-rmi-touchscreen.kcm:system/usr/keychars/synaptics-rmi-touchscreen.kcm \
+    $(LOCAL_PATH)/prebuilt/keyfiles/buzz-keypad.kl:system/usr/keylayout/buzz-keypad.kl \
+    $(LOCAL_PATH)/prebuilt/keyfiles/h2w_headset.kl:system/usr/keylayout/h2w_headset.kl
 
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
@@ -69,6 +69,7 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     Torch
+    Apollo
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.buzz.rc:root/init.buzz.rc \
@@ -78,9 +79,9 @@ PRODUCT_COPY_FILES += \
 
 # TWEAKS: init.d scripts
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/08zram:system/etc/init.d/08zram \
-    $(LOCAL_PATH)/prebuilt/70prioritize:system/etc/init.d/70prioritize \
-    $(LOCAL_PATH)/prebuilt/77tweaks:system/etc/init.d/77tweaks
+    $(LOCAL_PATH)/prebuilt/init.d/08zram:system/etc/init.d/08zram \
+    $(LOCAL_PATH)/prebuilt/init.d/70prioritize:system/etc/init.d/70prioritize \
+    $(LOCAL_PATH)/prebuilt/init.d/77tweaks:system/etc/init.d/77tweaks
 	
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
