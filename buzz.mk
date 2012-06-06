@@ -68,7 +68,7 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 PRODUCT_PACKAGES += \
-    Torch
+    Torch \
     Apollo
 
 PRODUCT_COPY_FILES += \
