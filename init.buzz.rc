@@ -83,7 +83,7 @@ on fs
 
     # flashlight
     chown system camera /sys/devices/platform/flashlight.0/leds/flashlight/brightness
-    chmod 0660          /sys/devices/platform/flashlight.0/leds/flashlight/brightness
+    chmod 0666          /sys/devices/platform/flashlight.0/leds/flashlight/brightness
 
     # bluetooth power up/down interface
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
