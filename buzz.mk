@@ -22,6 +22,10 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
 
+# Dalvik tweak
+DISABLE_DEXPREOPT := false
+PRODUCT_TAGS += dalvik.gc.type-precise
+
 # Include device specific overlays
 	DEVICE_PACKAGE_OVERLAYS := $(LOCAL_PATH)/overlay
 
