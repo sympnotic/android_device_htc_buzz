@@ -107,7 +107,12 @@ BOARD_VENDOR_QCOM_AMSS_VERSION := 1355
 
 ## web
 TARGET_WEBKIT_USE_MORE_MEMORY := true
+DYNAMIC_SHARED_LIBV8SO := true
 JS_ENGINE := v8
+HTTP := chrome
+
+WITH_JIT := true
+ENABLE_JSC_JIT := true
 
 # # cat /proc/mtd
 # dev:    size   erasesize  name
@@ -124,5 +129,6 @@ BOARD_SYSTEMIMAGE_PARTITION_SIZE := 262144000
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 183631872
 BOARD_FLASH_BLOCK_SIZE := 131072
 
+# Usb mouting
 BOARD_UMS_LUNFILE := "/sys/devices/platform/usb_mass_storage/lun0/file"
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/file
