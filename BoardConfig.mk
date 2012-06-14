@@ -73,6 +73,7 @@ BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
 TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
 TARGET_FORCE_CPU_UPLOAD := true
 
+USE_OPENGL_RENDERER := false
 BOARD_EGL_CFG := device/htc/buzz/egl.cfg
 
 # Allow fallback to ashmem
