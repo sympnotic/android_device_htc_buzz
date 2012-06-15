@@ -108,6 +108,7 @@ BOARD_VENDOR_QCOM_AMSS_VERSION := 1355
 ## web
 TARGET_WEBKIT_USE_MORE_MEMORY := true
 JS_ENGINE := v8
+DYNAMIC_SHARED_LIBV8SO := true
 
 # # cat /proc/mtd
 # dev:    size   erasesize  name
