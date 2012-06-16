@@ -75,6 +75,7 @@ TARGET_FORCE_CPU_UPLOAD := true
 
 USE_OPENGL_RENDERER := false
 BOARD_EGL_CFG := device/htc/buzz/egl.cfg
+BOARD_HAS_LIMITED_EGL:=true
 
 # Allow fallback to ashmem
 TARGET_GRALLOC_USES_ASHMEM := true
