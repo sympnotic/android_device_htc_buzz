@@ -81,7 +81,7 @@ TARGET_GRALLOC_USES_ASHMEM := true
 
 ## Qualcomm
 # camera
-BOARD_USE_FROYO_LIBCAMERA := false
+BOARD_CAMERA_USE_GETBUFFERINFO := true
 COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888 -DBINDER_COMPAT
 
 # audio (prevent breakage from QCOM_HARDWARE in system/audio.h)
