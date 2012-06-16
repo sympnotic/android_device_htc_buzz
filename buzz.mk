@@ -73,7 +73,8 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     Torch \
-    Apollo
+    Apollo \
+    Gallery
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/init.buzz.rc:root/init.buzz.rc \
