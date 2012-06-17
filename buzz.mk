@@ -55,7 +55,6 @@ PRODUCT_COPY_FILES += \
 
 # Module compiled for Buzz
 PRODUCT_PACKAGES += \
-    librs_jni \
     lights.buzz \
     sensors.buzz \
     gralloc.buzz \
@@ -64,12 +63,21 @@ PRODUCT_PACKAGES += \
     camera.buzz \
     audio.primary.buzz \
     audio_policy.buzz \
-    audio.a2dp.default \
-    libstagefrighthw \
+    audio.a2dp.default
+
+# Misc
+PRODUCT_PACKAGES += \
+    librs_jni \
+    com.android.future.usb.accessory
+
+# Omx
++PRODUCT_PACKAGES += \
+    libdivxdrmdecrypt \
     libmm-omxcore \
     libOmxCore \
-    libOmxVidEnc \
-    com.android.future.usb.accessory
+    libOmxVdec \
+    libOmxVenc \
+    libstagefrighthw
 
 PRODUCT_PACKAGES += \
     Torch \

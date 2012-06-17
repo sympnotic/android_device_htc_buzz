@@ -80,6 +80,10 @@ BOARD_HAS_LIMITED_EGL:=true
 # Allow fallback to ashmem
 TARGET_GRALLOC_USES_ASHMEM := true
 
+TARGET_USES_GENLOCK := false
+TARGET_USES_C2D_COMPOSITION := false
+TARGET_HAVE_BYPASS := true
+
 ## Qualcomm
 # camera
 BOARD_CAMERA_USE_GETBUFFERINFO := true
