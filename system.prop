@@ -122,3 +122,13 @@ mot.proximity.delay=25
 
 # disable metadata to enable recording
 debug.camcorder.disablemeta=1
+
+#Makes streaming videos stream faster
+media.stagefright.enable-player=true
+media.stagefright.enable-meta=true
+media.stagefright.enable-scan=true
+#fix HQ
+media.stagefright.enable-http=false
+#fix recording
+media.stagefright.enable-record=true
+
