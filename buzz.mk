@@ -97,7 +97,6 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     Torch \
-    Apollo \
     Gallery
 
 PRODUCT_COPY_FILES += \
