@@ -1,0 +1,11 @@
+[
+ {
+ "repository": "ldpi-common",
+ "target_path": "device/ldpi-common"
+ }
+ {
+ "repository": "htc-kernel-msm7225",
+ "target_path": "kernel/htc/msm7225"
+ }
+]
+
