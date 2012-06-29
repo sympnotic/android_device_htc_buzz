@@ -131,6 +131,22 @@ service akmd /system/bin/akmd
     user compass
     group compass misc input
 
+# compcache - handle at boot
+service compcache /system/bin/handle_compcache
+ class main
+ user root
+ group root
+ disabled
+
+on property:persist.service.zram=10
+ start compcache
+
+on property:persist.service.zram=18
+ start compcache
+
+on property:persist.service.zram=26
+ start compcache
+
 service hciattach /system/bin/brcm_patchram_plus --enable_hci --enable_lpm \
     --baudrate 3000000 --patchram /etc/firmware/bcm4329.hcd /dev/ttyHS0
     class main
