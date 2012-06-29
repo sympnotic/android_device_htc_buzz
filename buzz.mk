@@ -101,9 +101,9 @@ PRODUCT_PACKAGES += \
     FM
 
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/init.buzz.rc:root/init.buzz.rc \
-    $(LOCAL_PATH)/init.buzz.usb.rc:root/init.buzz.usb.rc \
-    $(LOCAL_PATH)/ueventd.buzz.rc:root/ueventd.buzz.rc \
+    $(LOCAL_PATH)/initramfs/init.buzz.rc:root/init.buzz.rc \
+    $(LOCAL_PATH)/initramfs/init.buzz.usb.rc:root/init.buzz.usb.rc \
+    $(LOCAL_PATH)/initramfs/ueventd.buzz.rc:root/ueventd.buzz.rc \
     $(LOCAL_PATH)/vold.fstab:system/etc/vold.fstab
 
 # TWEAKS: init.d scripts
