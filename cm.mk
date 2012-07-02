@@ -36,6 +36,23 @@ TARGET_BOOTANIMATION_NAME := vertical-240x320
 
 TARGET_NO_LIVEWALLPAPERS := true
 
+PRODUCT_PROPERTY_OVERRIDES += \
+rild.libpath=/system/lib/libhtc_ril.so \
+ro.ril.htcmaskw1.bitmask=4294967295 \
+ro.ril.htcmaskw1=14449 \
+ro.ril.ecc.HTC-ELL=92,93,94 \
+ro.ril.ecc.HTC-WWE=999 \
+ro.ril.enable.a52.HTC-ITA=1 \
+ro.ril.enable.a53.HTC-ITA=1 \
+ro.ril.enable.a52=0 \
+ro.ril.enable.a53=1 \
+ro.ril.enable.dtm=1 \
+ro.ril.gprsclass=12 \
+ro.ril.hsdpa.category=8 \
+ro.ril.hsupa.category=5 \
+ro.ril.hsxpa=2 \
+ro.ril.def.agps.mode=2
+
 # Fix CM9 mobile data
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/ppp/chap-secrets:system/etc/ppp/chap-secrets \
@@ -50,11 +67,6 @@ ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.allow.mock.location=1 \
     ro.debuggable=1
 	
-# Media configuration xml file & CM FileManager apk
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/media_profiles.xml:/system/etc/media_profiles.xml \
-    $(LOCAL_PATH)/prebuilt/apk/FileManager.apk:system/app/FileManager.apk
-
 # Permissions support files
 PRODUCT_COPY_FILES += \
     frameworks/base/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
