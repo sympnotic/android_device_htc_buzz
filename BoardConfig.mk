@@ -24,7 +24,6 @@
 # variant, so that it gets overwritten by the parent (which goes
 # against the traditional rules of inheritance).
 USE_CAMERA_STUB := true
-BUILD_LIBCAMERA := true
 
 # inherit from the proprietary version
 -include vendor/htc/buzz/BoardConfigVendor.mk
