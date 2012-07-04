@@ -93,6 +93,7 @@ BOARD_CAMERA_USE_GETBUFFERINFO := true
 COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888 -DBINDER_COMPAT
 
 # audio (prevent breakage from QCOM_HARDWARE in system/audio.h)
+BOARD_USES_AUDIO_LEGACY := true
 COMMON_GLOBAL_CFLAGS += -DLEGACY_AUDIO_COMPAT
 TARGET_PROVIDES_LIBAUDIO := true
 
@@ -142,5 +143,4 @@ BOARD_UMS_LUNFILE := "/sys/devices/platform/usb_mass_storage/lun0/file"
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/file
 
 # FM radio support
-BOARD_HAVE_FM_RADIO := true
-BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
+FM_RADIO := true
