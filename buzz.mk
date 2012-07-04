@@ -75,7 +75,7 @@ PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
 # Omx
-+PRODUCT_PACKAGES += \
+PRODUCT_PACKAGES += \
     libdivxdrmdecrypt \
     libmm-omxcore \
     libOmxCore \
@@ -96,7 +96,6 @@ PRODUCT_COPY_FILES += \
 
 # TWEAKS: init.d scripts
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/init.d/70prioritize:system/etc/init.d/70prioritize \
     $(LOCAL_PATH)/prebuilt/init.d/77tweaks:system/etc/init.d/77tweaks
 	
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
