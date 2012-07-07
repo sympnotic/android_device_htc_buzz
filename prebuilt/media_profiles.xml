@@ -91,15 +91,14 @@
 
         <EncoderProfile quality="high" fileFormat="mp4" duration="60">
             <Video codec="h263"
-                   bitRate="720000"
+                   bitRate="3000000"
                    width="640"
                    height="480"
                    frameRate="15" />
-
-            <Audio codec="aac"
-                   bitRate="96000"
-                   sampleRate="16000"
-                   channels="2" />
+            <Audio codec="amrnb"
+                   bitRate="12200"
+                   sampleRate="8000"
+                   channels="1" />
         </EncoderProfile>
 
         <EncoderProfile quality="low" fileFormat="3gp" duration="30">
@@ -108,7 +107,6 @@
                    width="176"
                    height="144"
                    frameRate="15" />
-
             <Audio codec="amrnb"
                    bitRate="12200"
                    sampleRate="8000"
@@ -133,22 +131,23 @@
          In other words, the applications won't be able to use the codec
          or query the capabilities of the codec at all if it is disabled
     -->
+
     <VideoEncoderCap name="h263" enabled="true"
-        minBitRate="192000" maxBitRate="720000"
+        minBitRate="64000" maxBitRate="6000000"
         minFrameWidth="176" maxFrameWidth="800"
         minFrameHeight="144" maxFrameHeight="480"
         minFrameRate="15" maxFrameRate="30" />
 
     <VideoEncoderCap name="m4v" enabled="true"
-        minBitRate="192000" maxBitRate="420000"
-        minFrameWidth="176" maxFrameWidth="384"
-        minFrameHeight="144" maxFrameHeight="288"
-        minFrameRate="1" maxFrameRate="30" />
-
-    <AudioEncoderCap name="aac" enabled="true"
+        minBitRate="64000" maxBitRate="8000000"
+        minFrameWidth="176" maxFrameWidth="1280"
+        minFrameHeight="144" maxFrameHeight="720"
+        minFrameRate="15" maxFrameRate="30" />
+        
+     <AudioEncoderCap name="aac" enabled="true"
         minBitRate="8192" maxBitRate="96000"
-        minSampleRate="8000" maxSampleRate="16000"
-        minChannels="1" maxChannels="2" />
+        minSampleRate="16000" maxSampleRate="16000"
+        minChannels="1" maxChannels="1" />
 
     <AudioEncoderCap name="amrnb" enabled="true"
         minBitRate="5525" maxBitRate="12200"
@@ -156,37 +155,37 @@
         minChannels="1" maxChannels="1" />
 
     <!--
-        FIXME:
-        We do not check decoder capabilities at present
-        At present, we only check whether windows media is visible
-        for TEST applications. For other applications, we do
-        not perform any checks at all.
+      FIXME:
+      We do not check decoder capabilities at present
+      At present, we only check whether windows media is visible
+      for TEST applications. For other applications, we do
+      not perform any checks at all.
     -->
-    <VideoDecoderCap name="wmv" enabled="false"/>
-    <AudioDecoderCap name="wma" enabled="false"/>
+    <VideoDecoderCap name="wmv" enabled="true"/>
+    <AudioDecoderCap name="wma" enabled="true"/>
 
     <!--
-        The VideoEditor Capability configuration:
-        - maxInputFrameWidth: maximum video width of imported video clip.
-        - maxInputFrameHeight: maximum video height of imported video clip.
-        - maxOutputFrameWidth: maximum video width of exported video clip.
-        - maxOutputFrameHeight: maximum video height of exported video clip.
-        - maxPrefetchYUVFrames: maximum prefetch YUV frames for encoder,
-        used to limit the amount of memory for prefetched YUV frames.
-        For this platform, it allows maximum ~1MB(~0.1MB per QVGA frame x 10
-        frames) memory.
+      The VideoEditor Capability configuration:
+      - maxInputFrameWidth: maximum video width of imported video clip.
+      - maxInputFrameHeight: maximum video height of imported video clip.
+      - maxOutputFrameWidth: maximum video width of exported video clip.
+      - maxOutputFrameHeight: maximum video height of exported video clip.
+      - maxPrefetchYUVFrames: maximum prefetch YUV frames for encoder,
+      used to limit the amount of memory for prefetched YUV frames.
+      For this platform, it allows maximum ~1MB(~0.1MB per QVGA frame x 10
+      frames) memory.
     -->
 
-    <VideoEditorCap  maxInputFrameWidth="640"
+    <VideoEditorCap maxInputFrameWidth="640"
         maxInputFrameHeight="480" maxOutputFrameWidth="640"
         maxOutputFrameHeight="480" maxPrefetchYUVFrames="10" />
     <!--
-        The VideoEditor Export codec profile and level values
-        correspond to the values in OMX_Video.h.
-        E.g. for h264, profile value 1 means OMX_VIDEO_AVCProfileBaseline
-        and  level 4096 means OMX_VIDEO_AVCLevel41.
-        Please note that the values are in decimal.
-        These values are for video encoder.
+      The VideoEditor Export codec profile and level values
+      correspond to the values in OMX_Video.h.
+      E.g. for h264, profile value 1 means OMX_VIDEO_AVCProfileBaseline
+      and level 4096 means OMX_VIDEO_AVCLevel41.
+      Please note that the values are in decimal.
+      These values are for video encoder.
     -->
     <!--
       Codec = h.263, Baseline profile, level 0
