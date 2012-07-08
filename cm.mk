@@ -53,14 +53,6 @@ ro.ril.hsupa.category=5 \
 ro.ril.hsxpa=2 \
 ro.ril.def.agps.mode=2
 
-# Fix CM9 mobile data
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/ppp/chap-secrets:system/etc/ppp/chap-secrets \
-    $(LOCAL_PATH)/prebuilt/ppp/ip-down:system/etc/ppp/ip-down \
-    $(LOCAL_PATH)/prebuilt/ppp/ip-up:system/etc/ppp/ip-up \
-    $(LOCAL_PATH)/prebuilt/ppp/options:system/etc/ppp/options \
-    $(LOCAL_PATH)/prebuilt/ppp/pap-secrets:system/etc/ppp/pap-secrets
-
 # For userdebug builds
 ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.secure=0 \
