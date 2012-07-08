@@ -143,4 +143,5 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/f
 
 # FM radio support
 BOARD_HAVE_FM_RADIO := true
+BOARD_HAVE_FM_RADIO_TI := true
 BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
