@@ -96,14 +96,6 @@ PRODUCT_COPY_FILES += \
 # TWEAKS: init.d scripts
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/init.d/77tweaks:system/etc/init.d/77tweaks
-
-# Fix CM9 mobile data
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/ppp/chap-secrets:system/etc/ppp/chap-secrets \
-    $(LOCAL_PATH)/prebuilt/ppp/ip-down:system/etc/ppp/ip-down \
-    $(LOCAL_PATH)/prebuilt/ppp/ip-up:system/etc/ppp/ip-up \
-    $(LOCAL_PATH)/prebuilt/ppp/options:system/etc/ppp/options \
-    $(LOCAL_PATH)/prebuilt/ppp/pap-secrets:system/etc/ppp/pap-secrets
 	
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
