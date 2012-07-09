@@ -36,22 +36,21 @@ TARGET_BOOTANIMATION_NAME := vertical-240x320
 
 TARGET_NO_LIVEWALLPAPERS := true
 
+# RIL specific configuration
 PRODUCT_PROPERTY_OVERRIDES += \
-rild.libpath=/system/lib/libhtc_ril.so \
-ro.ril.htcmaskw1.bitmask=4294967295 \
-ro.ril.htcmaskw1=14449 \
-ro.ril.ecc.HTC-ELL=92,93,94 \
-ro.ril.ecc.HTC-WWE=999 \
-ro.ril.enable.a52.HTC-ITA=1 \
-ro.ril.enable.a53.HTC-ITA=1 \
-ro.ril.enable.a52=0 \
-ro.ril.enable.a53=1 \
-ro.ril.enable.dtm=1 \
-ro.ril.gprsclass=12 \
-ro.ril.hsdpa.category=8 \
-ro.ril.hsupa.category=5 \
-ro.ril.hsxpa=2 \
-ro.ril.def.agps.mode=2
+    rild.libpath=/system/lib/libhtc_ril.so \
+    ro.ril.ecc.HTC-WWE=999 \
+    ro.ril.ecc.HTC-ELL=92,93,94 \
+    ro.ril.enable.a52.HTC-ITA=1 \
+    ro.ril.enable.a53.HTC-ITA=1 \
+    ro.ril.enable.a52=0 \
+    ro.ril.enable.a53=1 \
+    ro.ril.vmail.23415=1571,BT \
+    ro.ril.hsdpa.category = 8 \
+    ro.ril.htcmaskw1.bitmask = 4294967295 \
+    ro.ril.htcmaskw1 = 14449 \
+    ro.ril.def.agps.mode = 2 \
+    ro.ril.gprsclass=12
 
 # Fix CM9 mobile data
 PRODUCT_COPY_FILES += \
