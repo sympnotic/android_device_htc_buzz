@@ -104,10 +104,11 @@ BOARD_USES_GPSSHIM := true
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
 
-# touchscreen
+# touchscreen & trackpad
 BOARD_USE_SKIA_LCDTEXT := true
 BOARD_USE_NEW_LIBRIL_HTC := true
 BOARD_USE_LEGACY_TOUCHSCREEN := true
+BOARD_USE_LEGACY_TRACKPAD := true
 
 # Qcom specifics
 BOARD_USES_QCOM_LIBS := true
