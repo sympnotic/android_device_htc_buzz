@@ -287,13 +287,13 @@ xdr_s_type *xdr_init_common(const char *router, int is_client)
 
     xdr->fd = r_open(router);
     if (xdr->fd < 0) {
-        E("ERROR OPENING [%s]: %s\n", router, strerror(errno));
+        ALOGE("ERROR OPENING [%s]: %s\n", router, strerror(errno));
         free(xdr);
         return NULL;
     }
     xdr->is_client = is_client;
 
-    D("OPENED [%s] fd %d\n", router, xdr->fd);
+    ALOGD("OPENED [%s] fd %d\n", router, xdr->fd);
     return xdr;
 }
 
@@ -305,7 +305,7 @@ xdr_s_type *xdr_clone(xdr_s_type *other)
 
     xdr->fd = dup(other->fd);
     if (xdr->fd < 0) {
-        E("ERROR DUPLICATING FD %d: %s\n", other->fd, strerror(errno));
+        ALOGE("ERROR DUPLICATING FD %d: %s\n", other->fd, strerror(errno));
         free(xdr);
         return NULL;
     }
@@ -315,13 +315,14 @@ xdr_s_type *xdr_clone(xdr_s_type *other)
     xdr->x_vers = other->x_vers;
     xdr->is_client = other->is_client;
 
-    D("CLONED fd %d --> %d\n", other->fd, xdr->fd);
+    ALOGD("CLONED fd %d --> %d\n", other->fd, xdr->fd);
     return xdr;
 }
 
 void xdr_destroy_common(xdr_s_type *xdr)
 {
-    D("CLOSING fd %d\n", xdr->fd);
+    ALOGD("CLOSING fd %d\n", xdr->fd);
     r_close(xdr->fd);
     free(xdr);
 }
+

@@ -42,20 +42,20 @@ int r_open(const char *router)
   handle = open(name, O_RDWR, 0);
 
   if(handle < 0)
-      E("error opening %s: %s\n", name, strerror(errno));
+      ALOGE("error opening %s: %s\n", name, strerror(errno));
   return handle;
 }
 
 void r_close(int handle)
 {
-    if(close(handle) < 0) E("error: %s\n", strerror(errno));
+    if(close(handle) < 0) ALOGE("error: %s\n", strerror(errno));
 }
 
 int r_read(int handle, char *buf, uint32 size)
 {
 	int rc = read((int) handle, (void *)buf, size);
 	if (rc < 0)
-		E("error reading RPC packet: %d (%s)\n", errno, strerror(errno));
+		ALOGE("error reading RPC packet: %d (%s)\n", errno, strerror(errno));
 #if DUMP_DATA
 	else {
 		int len = rc / 4;
@@ -73,7 +73,7 @@ int r_write (int handle, const char *buf, uint32 size)
 {
 	int rc = write(handle, (void *)buf, size);
 	if (rc < 0)
-		E("error writing RPC packet: %d (%s)\n", errno, strerror(errno));
+		ALOGE("error writing RPC packet: %d (%s)\n", errno, strerror(errno));
 #if DUMP_DATA
 	else {
 		int len = rc / 4;
@@ -91,6 +91,7 @@ int r_control(int handle, const uint32 cmd, void *arg)
 {
   return ioctl(handle, cmd, arg);
 }
+
 
 
 

@@ -85,7 +85,7 @@ static int wakeup_pipe[2];
 static void *cb_context(void *__u)
 {
     CLIENT *client = (CLIENT *)__u;
-    D("RPC-callback thread for %08x:%08x starting.\n",
+    ALOGD("RPC-callback thread for %08x:%08x starting.\n",
       (client->xdr->x_prog | 0x01000000),
       client->xdr->x_vers);
     pthread_mutex_lock(&client->wait_cb_lock);
@@ -148,7 +148,7 @@ static void *cb_context(void *__u)
                    most likely a bug in the arm9 rpc router.
                 */
                 if (*svc_xdr) {
-                    D("%08x:%08x expecting XDR == NULL"
+                    ALOGD("%08x:%08x expecting XDR == NULL"
                       "callback client %08x:%08x!\n",
                       client->xdr->x_prog,
                       client->xdr->x_vers,
@@ -159,21 +159,21 @@ static void *cb_context(void *__u)
 
                 /* Do these checks before the clone */
                 if (client->xdr->in_len < 0) {
-                    E("%08x:%08x xdr->in_len = %i error %s (%d)",
+                    ALOGE("%08x:%08x xdr->in_len = %i error %s (%d)",
                         client->xdr->in_len,
                         client->xdr->x_prog, client->xdr->x_vers,
                         strerror(errno), errno);
                     continue;
                 }
                 if (client->xdr->out_next < 0) {
-                    E("%08x:%08x xdr->out_next = %i error %s (%d)",
+                    ALOGE("%08x:%08x xdr->out_next = %i error %s (%d)",
                         client->xdr->out_next,
                         client->xdr->x_prog, client->xdr->x_vers,
                     strerror(errno), errno);
                     continue;
                 }
 
-                D("%08x:%08x cloning XDR for "
+                ALOGD("%08x:%08x cloning XDR for "
                   "callback client %08x:%08x.\n",
                   client->xdr->x_prog,
                   client->xdr->x_vers,
@@ -200,13 +200,13 @@ static void *cb_context(void *__u)
                 xdr_destroy_common(*svc_xdr);
                 *svc_xdr = NULL;
             }
-            else E("%08x:%08x call packet arrived, but there's no "
+            else ALOGE("%08x:%08x call packet arrived, but there's no "
                    "RPC server registered for %08x:%08x.\n",
                    client->xdr->x_prog,
                    client->xdr->x_vers,                   
                    (uint32_t)prog, (int)vers);                           
         }
-        else E("%08x:%08x call packet arrived, but there's "
+        else ALOGE("%08x:%08x call packet arrived, but there's "
                "no RPC transport!\n",
                client->xdr->x_prog,
                client->xdr->x_vers);
@@ -216,7 +216,7 @@ static void *cb_context(void *__u)
     pthread_mutex_unlock(&client->wait_cb_lock);
 
 
-    E("RPC-callback thread for %08x:%08x terminating.\n",
+    ALOGE("RPC-callback thread for %08x:%08x terminating.\n",
       (client->xdr->x_prog | 0x01000000),
       client->xdr->x_vers);
     return NULL;
@@ -269,7 +269,7 @@ static void *rx_context(void *__u __attribute__((unused)))
             break;
 
         if (n < 0) {
-            E("poll() error %s (%d)\n", strerror(errno), errno);
+            ALOGE("poll() error %s (%d)\n", strerror(errno), errno);
             continue;
         }
 
@@ -283,7 +283,7 @@ static void *rx_context(void *__u __attribute__((unused)))
 
         client = (CLIENT *)clients;
         for (n=1; client; client = client->next, n++) {
-            D("poll events IN=%d, OUT=%d, RDHUP=%d, in_reset=%d\n",
+            ALOGD("poll events IN=%d, OUT=%d, RDHUP=%d, in_reset=%d\n",
                     pbits[n].revents & POLLIN ? 1 : 0,
                     pbits[n].revents & POLLOUT ? 1 : 0,
                     pbits[n].revents & POLLRDHUP ? 1 : 0,
@@ -353,13 +353,13 @@ static void *rx_context(void *__u __attribute__((unused)))
                     &client->input_xdr_lock);
             }
 
-            D("%08x:%08x reading data.\n",
+            ALOGD("%08x:%08x reading data.\n",
                client->xdr->x_prog, client->xdr->x_vers);
             grabPartialWakeLock();
 
             ret = client->xdr->xops->read(client->xdr);
             if (ret == FALSE) {
-                E("%08x:%08x xops->read() error %s (%d)\n",
+                ALOGE("%08x:%08x xops->read() error %s (%d)\n",
                   client->xdr->x_prog, client->xdr->x_vers,
                 strerror(errno), errno);
                 pthread_mutex_unlock(&client->input_xdr_lock);
@@ -378,7 +378,7 @@ static void *rx_context(void *__u __attribute__((unused)))
                   client->xdr->x_vers,
                   ntohl(((uint32 *)client->xdr->in_msg)[RPC_OFFSET]));
                 pthread_mutex_lock(&client->wait_reply_lock);
-                D("%08x:%08x got mutex, waking up client.\n",
+                ALOGD("%08x:%08x got mutex, waking up client.\n",
                   client->xdr->x_prog,
                   client->xdr->x_vers);
                 pthread_cond_signal(&client->wait_reply);
@@ -392,7 +392,7 @@ static void *rx_context(void *__u __attribute__((unused)))
                   client->xdr->x_vers);
                 client->got_cb = 1;
                 if (client->cb_stop < 0) {
-                    D("%08x:%08x starting callback thread.\n",
+                    ALOGD("%08x:%08x starting callback thread.\n",
                       client->xdr->x_prog,
                       client->xdr->x_vers);
                     client->cb_stop = 0;
@@ -400,7 +400,7 @@ static void *rx_context(void *__u __attribute__((unused)))
                                    NULL,
                                    cb_context, client);
                 }
-                D("%08x:%08x waking up callback thread.\n",
+                ALOGD("%08x:%08x waking up callback thread.\n",
                   client->xdr->x_prog,
                   client->xdr->x_vers);
                 pthread_cond_signal(&client->wait_cb);
@@ -453,7 +453,7 @@ clnt_call(
                              proc, &cred, &verf)) {
         XDR_MSG_ABORT (xdr);
         ret = RPC_CANTENCODEARGS; 
-        E("%08x:%08x error in xdr_call_msg_start()\n",
+        ALOGE("%08x:%08x error in xdr_call_msg_start()\n",
           client->xdr->x_prog,
           client->xdr->x_vers);
         goto out;
@@ -464,7 +464,7 @@ clnt_call(
     if (!xdr_args (xdr, args_ptr)) {
         XDR_MSG_ABORT(xdr);
         ret = RPC_CANTENCODEARGS; 
-        E("%08x:%08x error in xdr_args()\n",
+        ALOGE("%08x:%08x error in xdr_args()\n",
           client->xdr->x_prog,
           client->xdr->x_vers);
         goto out;
@@ -480,7 +480,7 @@ clnt_call(
     LIBRPC_DEBUG("%08x:%08x sending call (XID %d).\n",
       client->xdr->x_prog, client->xdr->x_vers, client->xdr->xid);
     if (!XDR_MSG_SEND(xdr)) {
-        E("error %d in XDR_MSG_SEND\n", xdr->xdr_err);
+        ALOGE("error %d in XDR_MSG_SEND\n", xdr->xdr_err);
         ret = RPC_CANTSEND;
         if (xdr->xdr_err == -ENETRESET) {
             client->in_reset = 1;
@@ -489,7 +489,7 @@ clnt_call(
         goto out_unlock;
     }
 
-    D("%08x:%08x waiting for reply.\n",
+    ALOGD("%08x:%08x waiting for reply.\n",
       client->xdr->x_prog, client->xdr->x_vers);
     pthread_cond_wait(&client->wait_reply, &client->wait_reply_lock);
     if (client->in_reset) {
@@ -501,7 +501,7 @@ clnt_call(
 
     if (((uint32 *)xdr->out_msg)[RPC_OFFSET] != 
         ((uint32 *)xdr->in_msg)[RPC_OFFSET]) {
-        E("%08x:%08x XID mismatch: got %d, expecting %d.\n",
+        ALOGE("%08x:%08x XID mismatch: got %d, expecting %d.\n",
           client->xdr->x_prog, client->xdr->x_vers,
           ntohl(((uint32 *)xdr->in_msg)[RPC_OFFSET]),
           ntohl(((uint32 *)xdr->out_msg)[RPC_OFFSET]));
@@ -509,10 +509,10 @@ clnt_call(
         goto out_unlock;
     }
 
-    D("%08x:%08x decoding reply header.\n",
+    ALOGD("%08x:%08x decoding reply header.\n",
       client->xdr->x_prog, client->xdr->x_vers);
     if (!xdr_recv_reply_header (client->xdr, &reply_header)) {
-        E("%08x:%08x error reading reply header.\n",
+        ALOGE("%08x:%08x error reading reply header.\n",
           client->xdr->x_prog, client->xdr->x_vers);
         ret = RPC_CANTRECV;
         goto out_unlock;
@@ -522,13 +522,13 @@ clnt_call(
     if (reply_header.stat != RPC_MSG_ACCEPTED) {
         /* Offset to map returned error into clnt_stat */
         ret = reply_header.u.dr.stat + RPC_VERSMISMATCH;
-        E("%08x:%08x call was not accepted.\n",
+        ALOGE("%08x:%08x call was not accepted.\n",
           (uint32_t)client->xdr->x_prog, client->xdr->x_vers);
         goto out_unlock;
     } else if (reply_header.u.ar.stat != RPC_ACCEPT_SUCCESS) {
         /* Offset to map returned error into clnt_stat */
         ret = reply_header.u.ar.stat + RPC_AUTHERROR;
-        E("%08x:%08x call failed with an authentication error.\n",
+        ALOGE("%08x:%08x call failed with an authentication error.\n",
           (uint32_t)client->xdr->x_prog, client->xdr->x_vers);
         goto out_unlock;
     }
@@ -537,7 +537,7 @@ clnt_call(
     /* Decode results */
     if (!xdr_results(xdr, rets_ptr) || ! XDR_MSG_DONE(xdr)) {
         ret = RPC_CANTDECODERES;
-        E("%08x:%08x error decoding results.\n",
+        ALOGE("%08x:%08x error decoding results.\n",
           client->xdr->x_prog, client->xdr->x_vers);
         goto out_unlock;
     }
@@ -547,7 +547,7 @@ clnt_call(
 
   out_unlock:
     pthread_mutex_lock(&client->input_xdr_lock);
-    D("%08x:%08x marking input buffer as free.\n",
+    ALOGD("%08x:%08x marking input buffer as free.\n",
       client->xdr->x_prog, client->xdr->x_vers);
     client->input_xdr_busy = 0;
     pthread_cond_signal(&client->input_xdr_wait);
@@ -706,7 +706,7 @@ CLIENT *clnt_create(
         snprintf(name, sizeof(name), "%08x:%08x", (uint32_t)prog, (int)vers);
         client->xdr = xdr_init_common(name, 1 /* client XDR */);
         if (!client->xdr) {
-            E("failed to initialize client (permissions?)!\n");
+            ALOGE("failed to initialize client (permissions?)!\n");
 	    if (!num_clients)
 		r_close(router_fd);
             free(client);
@@ -719,7 +719,7 @@ CLIENT *clnt_create(
 
         if (!num_clients) {
             if (pipe(wakeup_pipe) == -1) {
-               E("failed to create pipe\n");
+               ALOGE("failed to create pipe\n");
 	       r_close(router_fd);
                free(client);
                pthread_mutex_unlock(&rx_mutex);
@@ -730,12 +730,12 @@ CLIENT *clnt_create(
         client->next = (CLIENT *)clients;
         clients = client;
         if (!num_clients++) {
-            D("launching RX thread.\n");
+            ALOGD("launching RX thread.\n");
             pthread_create(&rx_thread, NULL, rx_context, NULL);
         } else {
             /* client added, wake up rx_thread */
             if (write(wakeup_pipe[1], "a", 1) < 0)
-	        E("error writing to pipe\n");
+	        ALOGE("error writing to pipe\n");
 	}
 
         pthread_mutexattr_init(&client->lock_attr);
@@ -782,7 +782,7 @@ clnt_reset_notif_cb clnt_unregister_reset_notification_cb(CLIENT *client) {
 void clnt_destroy(CLIENT *client) {
     if (client) {
         pthread_mutex_lock(&client->lock);
-        D("%08x:%08x destroying client\n",
+        ALOGD("%08x:%08x destroying client\n",
           client->xdr->x_prog,
           client->xdr->x_vers);
 
@@ -790,13 +790,13 @@ void clnt_destroy(CLIENT *client) {
         if (!client->cb_stop) {
             /* The callback thread is running, we need to stop it */
             client->cb_stop = 1;
-            D("%08x:%08x stopping callback thread\n",
+            ALOGD("%08x:%08x stopping callback thread\n",
               client->xdr->x_prog,
               client->xdr->x_vers);
             pthread_mutex_lock(&client->wait_cb_lock);
             pthread_cond_signal(&client->wait_cb);
             pthread_mutex_unlock(&client->wait_cb_lock);
-            D("%08x:%08x joining callback thread\n",
+            ALOGD("%08x:%08x joining callback thread\n",
               client->xdr->x_prog,
               client->xdr->x_vers);
             pthread_join(client->cb_thread, NULL);
@@ -807,7 +807,7 @@ void clnt_destroy(CLIENT *client) {
             CLIENT *trav = (CLIENT *)clients, *prev = NULL;
             for(; trav; trav = trav->next) {
                 if (trav == client) {
-                     D("%08x:%08x removing from client list\n",
+                     ALOGD("%08x:%08x removing from client list\n",
                       client->xdr->x_prog,
                       client->xdr->x_vers);
                     if (prev)
@@ -823,11 +823,11 @@ void clnt_destroy(CLIENT *client) {
         if (!num_clients) {
             /* no clients, wake up rx_thread */
             if (write(wakeup_pipe[1], "d", 1) < 0)
-	        E("error writing to pipe\n");
+	        ALOGE("error writing to pipe\n");
 
-            D("stopping rx thread!\n");
+            ALOGD("stopping rx thread!\n");
             pthread_join(rx_thread, NULL);
-            D("stopped rx thread\n");
+            ALOGD("stopped rx thread\n");
 
             close(wakeup_pipe[0]);
             close(wakeup_pipe[1]);
@@ -857,3 +857,4 @@ void clnt_destroy(CLIENT *client) {
         free(client);
     }
 }
+

@@ -124,7 +124,7 @@ void svc_reset_cb(void* xprt, enum rpc_reset_event event) {
 
     pthread_mutex_lock(&xprt_lock);
 
-    D("Calling reset cb %p with event %d\n", xprt_type->reset_cb, event);
+    ALOGD("Calling reset cb %p with event %d\n", xprt_type->reset_cb, event);
     if (xprt_type->reset_cb)
         xprt_type->reset_cb(xprt, event);
 
@@ -142,7 +142,7 @@ static void* svc_context(void *__u)
         tv.tv_sec = 1; tv.tv_usec = 0;
         n = select(xprt->max_fd + 1, (fd_set *)&rfds, NULL, NULL, &tv);
         if (n < 0) {
-            E("select() error %s (%d)\n", strerror(errno), errno);
+            ALOGE("select() error %s (%d)\n", strerror(errno), errno);
             continue;
         }
         if (n) {
@@ -158,7 +158,7 @@ static void* svc_context(void *__u)
 		      if ((trav->xdr) && (trav->xdr->fd == n)) {
                             /* read the entire RPC */
                             if (trav->xdr->xops->read(trav->xdr) == 0) {
-                                E("%08x:%08x ONCRPC read error: aborting!\n",
+                                ALOGE("%08x:%08x ONCRPC read error: aborting!\n",
                                   trav->xdr->x_prog, trav->xdr->x_vers);
                                 abort();
                             }
@@ -170,7 +170,7 @@ static void* svc_context(void *__u)
             releaseWakeLock();
         }
     }
-    D("RPC-server thread exiting!\n");
+    ALOGD("RPC-server thread exiting!\n");
     return NULL;
 }
 
@@ -179,7 +179,7 @@ SVCXPRT *svcrtr_create (void)
     SVCXPRT *xprt;
     pthread_mutex_lock(&xprt_lock);
     if (the_xprt) {
-        D("The RPC transport has already been created.\n");
+        ALOGD("The RPC transport has already been created.\n");
         xprt = the_xprt;
     } else {
         xprt = calloc(1, sizeof(SVCXPRT));
@@ -238,12 +238,12 @@ bool_t svc_register (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers,
 
     pthread_mutex_lock(&xprt->lock);
 
-    D("registering for service %08x:%d\n", (uint32_t)prog, (int)vers);
+    ALOGD("registering for service %08x:%d\n", (uint32_t)prog, (int)vers);
 
     svc = svc_find_nosync(xprt, prog, vers, NULL);
 
     if (svc) {
-        E("service is already registered!\n");
+        ALOGE("service is already registered!\n");
         pthread_mutex_unlock(&xprt->lock);
         return svc->dispatch == dispatch;
     }
@@ -259,16 +259,16 @@ bool_t svc_register (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers,
     */
 
     if (prog & 0x01000000) {
-        D("RPC server %08x:%d is a callback client, "
+        ALOGD("RPC server %08x:%d is a callback client, "
           "creating dummy service entry!\n", (uint32_t)prog, (int)vers);
         svc->xdr = NULL;
         svc->x_prog = prog;
         svc->x_vers = vers;        
     } else {
-        V("RPC server %08x:%d is a real server.\n", (uint32_t)prog, (int)vers);
+        ALOGV("RPC server %08x:%d is a real server.\n", (uint32_t)prog, (int)vers);
         svc->xdr = xdr_init_common("00000000:0", 0 /* not a client XDR */);
         if (svc->xdr == NULL) {
-            E("failed to initialize service (permissions?)!\n");
+            ALOGE("failed to initialize service (permissions?)!\n");
             free(svc);
             pthread_mutex_unlock(&xprt->lock);
             return FALSE;
@@ -276,12 +276,12 @@ bool_t svc_register (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers,
 
         args.prog = prog;
         args.vers = vers;    
-        V("RPC server %08x:%d: registering with kernel.\n",
+        ALOGV("RPC server %08x:%d: registering with kernel.\n",
           (uint32_t)prog, (int)vers);
         if (r_control(svc->xdr->fd, 
                       RPC_ROUTER_IOCTL_REGISTER_SERVER, 
                       &args) < 0) {
-            E("ioctl(RPC_ROUTER_IOCTL_REGISTER_SERVER) failed: %s!\n",
+            ALOGE("ioctl(RPC_ROUTER_IOCTL_REGISTER_SERVER) failed: %s!\n",
               strerror(errno));
             xdr_destroy_common(svc->xdr);
             free(svc);
@@ -303,12 +303,12 @@ bool_t svc_register (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers,
     else
         xprt->num_cb_servers++;
 
-    V("RPC server %08x:%d: after registering,"
+    ALOGV("RPC server %08x:%d: after registering,"
       "total %d servers, %d cb servers.\n",
       (uint32_t)prog, (int)vers, xprt->num_servers, xprt->num_cb_servers);
     svc->xprt = xprt;
     if (xprt->num_servers == 1) {
-        D("creating RPC-server thread (detached)!\n");
+        ALOGD("creating RPC-server thread (detached)!\n");
         pthread_create(&xprt->svc_thread,
                        &xprt->thread_attr,
                        svc_context, xprt);
@@ -345,15 +345,15 @@ void svc_unregister (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers) {
     registered_server *prev, *found;
     pthread_mutex_lock(&xprt->lock);
     found = svc_find_nosync(xprt, prog, vers, &prev);
-    D("unregistering RPC server %08x:%d\n", (unsigned)prog, (unsigned)vers);
+    ALOGD("unregistering RPC server %08x:%d\n", (unsigned)prog, (unsigned)vers);
     if (found) {
         struct rpcrouter_ioctl_server_args args;
         if (prev) {
-            V("RPC server %08x:%d is not the first in the list\n", 
+            ALOGV("RPC server %08x:%d is not the first in the list\n", 
               (unsigned)prog, (unsigned)vers);
             prev->next = found->next;
         } else {
-            V("RPC server %08x:%d the first in the list\n", 
+            ALOGV("RPC server %08x:%d the first in the list\n", 
               (unsigned)prog, (unsigned)vers);
             xprt->servers = found->next;
         }
@@ -361,7 +361,7 @@ void svc_unregister (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers) {
         /* Is is an RPC server or a callback client? */
         if (found->xdr) {
             if (!(prog & 0x01000000)) {
-                V("RPC server %08x:%d is not a callback server.\n",
+                ALOGV("RPC server %08x:%d is not a callback server.\n",
                   (unsigned)prog, (unsigned)vers);
                 /* don't bother decreasing the xprt->max_fd to the previous
                  * minimum.
@@ -371,17 +371,17 @@ void svc_unregister (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers) {
                 if (r_control(found->xdr->fd,
                               RPC_ROUTER_IOCTL_UNREGISTER_SERVER,
                               &args) < 0) {
-                    E("ioctl(RPC_ROUTER_IOCTL_UNREGISTER_SERVER) "
+                    ALOGE("ioctl(RPC_ROUTER_IOCTL_UNREGISTER_SERVER) "
                       "failed: %s!\n", 
                       strerror(errno));
                 }                
                 FD_CLR(found->xdr->fd, &xprt->fdset);
             }
-            V("RPC server %08x:%d: destroying XDR\n",
+            ALOGV("RPC server %08x:%d: destroying XDR\n",
                    (unsigned)prog, (unsigned)vers);
             xdr_destroy_common(found->xdr);
         }
-        else V("RPC server %08x:%d does not have an associated XDR\n", 
+        else ALOGV("RPC server %08x:%d does not have an associated XDR\n", 
                (unsigned)prog, (unsigned)vers);
 
         /* When this goes to zero, the RPC-server thread will exit.  We do not
@@ -393,7 +393,7 @@ void svc_unregister (SVCXPRT *xprt, rpcprog_t prog, rpcvers_t vers) {
             xprt->num_cb_servers--;
 
         free(found);
-        V("RPC server %08x:%d: after unregistering,"
+        ALOGV("RPC server %08x:%d: after unregistering,"
 	  "%d servers, %d cb servers left.\n",
           (unsigned)prog, (unsigned)vers,
 	  xprt->num_servers, xprt->num_cb_servers);
@@ -429,7 +429,7 @@ void svc_dispatch(registered_server *svc, SVCXPRT *xprt)
        arriving on this channel must be an RPC call.  Also, the program and
        program-version numbers must match what's in the XDR of the service. */
 
-    D("reading on fd %d for %08x:%d\n", 
+    ALOGD("reading on fd %d for %08x:%d\n", 
       svc->xdr->fd, (int)svc->x_prog, (int)svc->x_vers);
 
     uint32 prog = ntohl(((uint32 *)(svc->xdr->in_msg))[RPC_OFFSET+3]);
@@ -437,18 +437,18 @@ void svc_dispatch(registered_server *svc, SVCXPRT *xprt)
     uint32 proc = ntohl(((uint32 *)(svc->xdr->in_msg))[RPC_OFFSET+5]);
 
     if (ntohl(((uint32 *)svc->xdr->in_msg)[RPC_OFFSET+1]) != RPC_MSG_CALL) {
-        E("ERROR: expecting an RPC call on server channel!\n");
+        ALOGE("ERROR: expecting an RPC call on server channel!\n");
         return;
     }
 
     if (prog != svc->x_prog) {
-        E("ERROR: prog num %08x does not match expected %08x!\n",
+        ALOGE("ERROR: prog num %08x does not match expected %08x!\n",
           (unsigned)prog, (unsigned)svc->x_prog);
         return;
     }
 
     if (vers != svc->xdr->x_vers) {
-        E("ERROR: prog vers %08x does not match expected %08x!\n",
+        ALOGE("ERROR: prog vers %08x does not match expected %08x!\n",
                 vers, svc->xdr->x_vers);
         return;
     }
@@ -458,7 +458,7 @@ void svc_dispatch(registered_server *svc, SVCXPRT *xprt)
     req.rq_proc = proc;
     req.rq_xprt = xprt;
 
-    D("START: SVC DISPATCH %08x:%08x --> %08x\n",
+    ALOGD("START: SVC DISPATCH %08x:%08x --> %08x\n",
       (uint32_t)prog, (int)vers, proc);
     /* The RPC header (XID, call type, RPC version, program number, program
        version, proc number) is 6 long words; the default credentials are 4
@@ -471,7 +471,7 @@ void svc_dispatch(registered_server *svc, SVCXPRT *xprt)
     svc->xdr->x_op = XDR_DECODE;
     svc->dispatch(&req, (SVCXPRT *)svc);
     svc->active = 0;
-    D("DONE: SVC DISPATCH %08x:%08x --> %08x\n",
+    ALOGD("DONE: SVC DISPATCH %08x:%08x --> %08x\n",
       (uint32_t)prog, (int)vers, proc);
 }
 
@@ -481,9 +481,9 @@ void xprt_register(SVCXPRT *xprt)
     if (!the_xprt || (xprt && (xprt == the_xprt))) {
         xprt_refcount++;
         the_xprt = xprt;
-        D("registering RPC transport (refcount %d)\n", xprt_refcount);
+        ALOGD("registering RPC transport (refcount %d)\n", xprt_refcount);
     }
-    else E("a different RPC transport has already been registered!\n");
+    else ALOGE("a different RPC transport has already been registered!\n");
     pthread_mutex_unlock(&xprt_lock);
 }
 
@@ -493,7 +493,7 @@ void xprt_unregister (SVCXPRT *xprt)
     if (xprt && xprt == the_xprt) {
         if (xprt_refcount == 1) {
             xprt_refcount = 0;
-            D("Destroying RPC transport (servers %d, cb servers %d)\n",
+            ALOGD("Destroying RPC transport (servers %d, cb servers %d)\n",
               the_xprt->num_servers, the_xprt->num_cb_servers);
 
             pthread_attr_destroy(&xprt->thread_attr);
@@ -509,9 +509,9 @@ void xprt_unregister (SVCXPRT *xprt)
             the_xprt = NULL;
         }
         else xprt_refcount--;
-        D("unregistering RPC transport (refcount %d)\n", xprt_refcount);
+        ALOGD("unregistering RPC transport (refcount %d)\n", xprt_refcount);
     }
-    else E("no RPC transport has been registered!\n");
+    else ALOGE("no RPC transport has been registered!\n");
     pthread_mutex_unlock(&xprt_lock);
 }
 
@@ -622,3 +622,4 @@ void svcerr_noproc(SVCXPRT *xprt)
             XDR_MSG_ABORT(serv->xdr);        
     }
 } /* svcerr_noproc */
+
