@@ -17,7 +17,7 @@
 
 #define LOG_TAG "copybit"
 
-#include <cutils/LOG.h>
+#include <cutils/log.h>
 
 #include <linux/msm_mdp.h>
 #include <linux/fb.h>
