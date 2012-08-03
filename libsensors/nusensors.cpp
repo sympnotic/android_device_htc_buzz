@@ -95,7 +95,7 @@ sensors_poll_context_t::sensors_poll_context_t()
 
     int wakeFds[2];
     int result = pipe(wakeFds);
-    LOGE_IF(result<0, "error creating wake pipe (%s)", strerror(errno));
+    ALOGE_IF(result<0, "error creating wake pipe (%s)", strerror(errno));
     fcntl(wakeFds[0], F_SETFL, O_NONBLOCK);
     fcntl(wakeFds[1], F_SETFL, O_NONBLOCK);
     mWritePipeFd = wakeFds[1];
