@@ -1,0 +1,33 @@
+From 9ca0d7384a8a432bbfe6f44b9478dddef0c85c5f Mon Sep 17 00:00:00 2001
+From: ErwinP <erwin.pannecoucke@gmail.com>
+Date: Thu, 2 Aug 2012 14:08:33 +0200
+Subject: [PATCH] EGL: Rework adreno 130 workaround to support update
+ egl_display
+
+Original author: XDA-member Shelnutt2
+
+Change-Id: I6f7bafd5d12321e76ea6d2bd2e9646bc0e72d75b
+---
+ opengl/libs/EGL/egl_display.cpp |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/opengl/libs/EGL/egl_display.cpp b/opengl/libs/EGL/egl_display.cpp
+index a46aa38..b6bdca4 100644
+--- a/opengl/libs/EGL/egl_display.cpp
++++ b/opengl/libs/EGL/egl_display.cpp
+@@ -173,9 +173,9 @@ EGLBoolean egl_display_t::initialize(EGLint *major, EGLint *minor) {
+          * cannot be called again. Therefore, we need to make sure to call
+          * eglGetDisplay() before calling eglInitialize();
+          */
+-        if (i == IMPL_HARDWARE) {
+-            disp[i].dpy = cnx->egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
+-        }
++
++            disp.dpy = cnx->egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
++
+ #endif
+ 
+         EGLDisplay idpy = disp.dpy;
+-- 
+1.7.9.5
+
