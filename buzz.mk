@@ -92,10 +92,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/initramfs/init.buzz.usb.rc:root/init.buzz.usb.rc \
     $(LOCAL_PATH)/initramfs/ueventd.buzz.rc:root/ueventd.buzz.rc \
     $(LOCAL_PATH)/vold.fstab:system/etc/vold.fstab
-
-# TWEAKS: init.d scripts
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/init.d/77tweaks:system/etc/init.d/77tweaks
 	
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
