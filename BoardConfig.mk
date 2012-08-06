@@ -46,11 +46,12 @@ TARGET_BOARD_INFO_FILE := device/htc/buzz/board-info.txt
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER      := WEXT
+BOARD_WEXT_NO_COMBO_SCAN         := true # TODO: find out what this does
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
 BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_wext
 BOARD_WLAN_DEVICE                := bcm4329
 WIFI_BAND                        := 802_11_ABG
-WIFI_DRIVER_MODULE_PATH          := "/lib/modules/bcm4329.ko"
+WIFI_DRIVER_MODULE_PATH          := "/lib/modules/bcm4329.ko" # TODO: test "system/lib/modules/bcm4329.ko"
 WIFI_DRIVER_FW_PATH_STA          := "/vendor/firmware/fw_bcm4329.bin"
 WIFI_DRIVER_FW_PATH_AP           := "/vendor/firmware/fw_bcm4329_apsta.bin"
 WIFI_DRIVER_MODULE_ARG           := "iface_name=wlan0 firmware_path=/vendor/firmware/fw_bcm4329.bin nvram_path=/proc/calibration"
@@ -67,6 +68,7 @@ BOARD_KERNEL_BASE := 0x02E00000
 BOARD_KERNEL_PAGESIZE := 2048
 
 # Enable network search
+# BOARD_PROVIDES_LIBRIL := true (TODO: find out what this does)
 BOARD_USE_NEW_LIBRIL_HTC := true
 
 ## Buzz graphics
@@ -95,6 +97,8 @@ COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888 -DBINDER_COMPAT
 # audio (prevent breakage from QCOM_HARDWARE in system/audio.h)
 COMMON_GLOBAL_CFLAGS += -DLEGACY_AUDIO_COMPAT
 TARGET_PROVIDES_LIBAUDIO := true
+BOARD_USES_ICS_LIBAUDIO := true
+BOARD_USES_AUDIO_LEGACY := false
 
 # GPS
 BOARD_GPS_LIBRARIES := libgps librpc
@@ -143,4 +147,5 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/f
 
 # FM radio support
 BOARD_HAVE_FM_RADIO := true
+BOARD_FM_DEVICE := bcm4325
 BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO

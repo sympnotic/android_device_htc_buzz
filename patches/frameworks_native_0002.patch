@@ -1,0 +1,1271 @@
+From ee7a077fde860e1a278e1760c8ab6e31c60536eb Mon Sep 17 00:00:00 2001
+From: ErwinP <erwin.pannecoucke@gmail.com>
+Date: Mon, 6 Aug 2012 01:27:49 +0200
+Subject: [PATCH] libagl: Allow use of copybit to accelerate 2D rendering
+
+Port back from CM9 /w whitespace trail and LOGD > ALOGD usage fix
+by burstlam
+https://github.com/burstlam/android_frameworks_native/commit/c0e4a419b6187ecebb6adc8f1c897b8f3114899b
+
+Original Author : Ame Coucheron (http://review.cyanogenmod.com/#/c/11167/)
+
+This improves performance on devices that uses copybit.
+Enable with TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
+Forward ported from Gingerbread
+
+Change-Id: I17585e9d91f10103a77c0ab26594ef1f40b78e92
+---
+ include/ui/Region.h                    |   29 +-
+ opengl/libagl/Android.mk               |    6 +
+ opengl/libagl/TextureObjectManager.cpp |    3 +
+ opengl/libagl/TextureObjectManager.h   |    3 +
+ opengl/libagl/array.cpp                |    8 +
+ opengl/libagl/context.h                |   27 +-
+ opengl/libagl/copybit.cpp              |  616 ++++++++++++++++++++++++++++++++
+ opengl/libagl/copybit.h                |   75 ++++
+ opengl/libagl/egl.cpp                  |  155 ++++++--
+ opengl/libagl/state.cpp                |   38 ++
+ opengl/libagl/texture.cpp              |   26 ++
+ 11 files changed, 957 insertions(+), 29 deletions(-)
+ create mode 100644 opengl/libagl/copybit.cpp
+ create mode 100644 opengl/libagl/copybit.h
+
+diff --git a/include/ui/Region.h b/include/ui/Region.h
+index f242f18..7bc1b4c 100644
+--- a/include/ui/Region.h
++++ b/include/ui/Region.h
+@@ -24,6 +24,10 @@
+ 
+ #include <ui/Rect.h>
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++#include <hardware/copybit.h>
++#endif
++
+ namespace android {
+ // ---------------------------------------------------------------------------
+ 
+@@ -195,8 +199,31 @@ Region& Region::operator -= (const Region& rhs) {
+ Region& Region::operator += (const Point& pt) {
+     return translateSelf(pt.x, pt.y);
+ }
++
++
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++// ---------------------------------------------------------------------------
++
++struct region_iterator : public copybit_region_t {
++    region_iterator(const Region& region)
++        : b(region.begin()), e(region.end()) {
++        this->next = iterate;
++    }
++private:
++    static int iterate(copybit_region_t const * self, copybit_rect_t* rect) {
++        region_iterator const* me = static_cast<region_iterator const*>(self);
++        if (me->b != me->e) {
++            *reinterpret_cast<Rect*>(rect) = *me->b++;
++            return 1;
++        }
++        return 0;
++    }
++    mutable Region::const_iterator b;
++    Region::const_iterator const e;
++};
++#endif
++
+ // ---------------------------------------------------------------------------
+ }; // namespace android
+ 
+ #endif // ANDROID_UI_REGION_H
+-
+diff --git a/opengl/libagl/Android.mk b/opengl/libagl/Android.mk
+index 15e58f2..7bd542e 100644
+--- a/opengl/libagl/Android.mk
++++ b/opengl/libagl/Android.mk
+@@ -46,6 +46,12 @@ ifeq ($(TARGET_ARCH)-$(ARCH_ARM_HAVE_TLS_REGISTER),arm-true)
+ endif
+ LOCAL_C_INCLUDES += bionic/libc/private
+ 
++ifneq ($(TARGET_LIBAGL_USE_GRALLOC_COPYBITS),)
++LOCAL_CFLAGS += -DLIBAGL_USE_GRALLOC_COPYBITS
++LOCAL_SRC_FILES += copybit.cpp
++LOCAL_SHARED_LIBRARIES += libui
++endif
++
+ LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/egl
+ LOCAL_MODULE:= libGLES_android
+ 
+diff --git a/opengl/libagl/TextureObjectManager.cpp b/opengl/libagl/TextureObjectManager.cpp
+index 06d45cc..7afb847 100644
+--- a/opengl/libagl/TextureObjectManager.cpp
++++ b/opengl/libagl/TextureObjectManager.cpp
+@@ -53,6 +53,9 @@ void EGLTextureObject::init()
+     memset(crop_rect, 0, sizeof(crop_rect));
+     generate_mipmap = GL_FALSE;
+     direct = GL_FALSE;
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    try_copybit = false;
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
+     buffer = 0;
+ }
+ 
+diff --git a/opengl/libagl/TextureObjectManager.h b/opengl/libagl/TextureObjectManager.h
+index de9e03e..d9570c8 100644
+--- a/opengl/libagl/TextureObjectManager.h
++++ b/opengl/libagl/TextureObjectManager.h
+@@ -80,6 +80,9 @@ public:
+     GLint               crop_rect[4];
+     GLint               generate_mipmap;
+     GLint               direct;
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    bool                try_copybit;
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
+     ANativeWindowBuffer* buffer;
+ };
+ 
+diff --git a/opengl/libagl/array.cpp b/opengl/libagl/array.cpp
+index 7fbe9b5..5f2cb5f 100644
+--- a/opengl/libagl/array.cpp
++++ b/opengl/libagl/array.cpp
+@@ -26,6 +26,9 @@
+ #include "primitives.h"
+ #include "texture.h"
+ #include "BufferObjectManager.h"
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++#include "copybit.h"
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
+ 
+ // ----------------------------------------------------------------------------
+ 
+@@ -704,6 +707,11 @@ void drawPrimitivesTriangleStrip(ogles_context_t* c,
+ 
+ void drawPrimitivesTriangleFan(ogles_context_t* c,
+         GLint first, GLsizei count) {
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    if (drawTriangleFanWithCopybit(c, first, count)) {
++        return;
++    }
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
+     drawPrimitivesTriangleFanOrStrip(c, first, count, 2);
+ }
+ 
+diff --git a/opengl/libagl/context.h b/opengl/libagl/context.h
+index 7065a30..d4b544c 100644
+--- a/opengl/libagl/context.h
++++ b/opengl/libagl/context.h
+@@ -27,10 +27,17 @@
+ 
+ #include <private/pixelflinger/ggl_context.h>
+ #include <hardware/gralloc.h>
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++#include <hardware/copybit.h>
++#endif
+ 
+ #include <GLES/gl.h>
+ #include <GLES/glext.h>
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++struct ANativeWindowBuffer;
++#endif
++
+ namespace android {
+ 
+ 
+@@ -601,6 +608,16 @@ struct prims_t {
+     void (*renderTriangle)(GL, vertex_t*, vertex_t*, vertex_t*);
+ };
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++struct copybits_context_t {
++    // A handle to the blit engine, if it exists, else NULL.
++    copybit_device_t*       blitEngine;
++    int32_t                 minScale;
++    int32_t                 maxScale;
++    ANativeWindowBuffer* drawSurfaceBuffer;
++};
++#endif
++
+ struct ogles_context_t {
+     context_t               rasterizer;
+     array_machine_t         arrays         __attribute__((aligned(32)));
+@@ -625,6 +642,15 @@ struct ogles_context_t {
+     EGLSurfaceManager*      surfaceManager;
+     EGLBufferObjectManager* bufferObjectManager;
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    // copybits is only used if LIBAGL_USE_GRALLOC_COPYBITS is
++    // defined, but it is always present because ogles_context_t is a public
++    // struct that is used by clients of libagl. We want the size and offsets
++    // to stay the same, whether or not LIBAGL_USE_GRALLOC_COPYBITS is defined.
++
++    copybits_context_t      copybits;
++#endif
++
+     GLenum                  error;
+ 
+     static inline ogles_context_t* get() {
+@@ -639,4 +665,3 @@ struct ogles_context_t {
+ using namespace android::gl;
+ 
+ #endif // ANDROID_OPENGLES_CONTEXT_H
+-
+diff --git a/opengl/libagl/copybit.cpp b/opengl/libagl/copybit.cpp
+new file mode 100644
+index 0000000..cb9fd01
+--- /dev/null
++++ b/opengl/libagl/copybit.cpp
+@@ -0,0 +1,616 @@
++/*
++**
++** Copyright 2009, The Android Open Source Project
++**
++** Licensed under the Apache License, Version 2.0 (the "License");
++** you may not use this file except in compliance with the License.
++** You may obtain a copy of the License at
++**
++**     http://www.apache.org/licenses/LICENSE-2.0
++**
++** Unless required by applicable law or agreed to in writing, software
++** distributed under the License is distributed on an "AS IS" BASIS,
++** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++** See the License for the specific language governing permissions and
++** limitations under the License.
++*/
++
++#include <stdlib.h>
++#include <stdio.h>
++
++#include "context.h"
++#include "fp.h"
++#include "state.h"
++#include "matrix.h"
++#include "vertex.h"
++#include "light.h"
++#include "primitives.h"
++#include "texture.h"
++#include "BufferObjectManager.h"
++#include "TextureObjectManager.h"
++
++#include <hardware/gralloc.h>
++#include <hardware/copybit.h>
++
++#include <ui/GraphicBuffer.h>
++#include <ui/Region.h>
++#include <ui/Rect.h>
++
++
++#define DEBUG_COPYBIT false
++
++// ----------------------------------------------------------------------------
++
++namespace android {
++
++static void textureToCopyBitImage(
++        const GGLSurface* surface, int32_t opFormat,
++        ANativeWindowBuffer* buffer, copybit_image_t* img)
++{
++    img->w      = surface->stride;
++    img->h      = surface->height;
++    img->format = opFormat;
++    img->base   = surface->data;
++    img->handle = (native_handle_t *)buffer->handle;
++}
++
++struct clipRectRegion : public copybit_region_t {
++    clipRectRegion(ogles_context_t* c)
++    {
++        scissor_t const* scissor = &c->rasterizer.state.scissor;
++        r.l = scissor->left;
++        r.t = scissor->top;
++        r.r = scissor->right;
++        r.b = scissor->bottom;
++        next = iterate;
++    }
++private:
++    static int iterate(copybit_region_t const * self, copybit_rect_t* rect) {
++        *rect = static_cast<clipRectRegion const*>(self)->r;
++        const_cast<copybit_region_t *>(self)->next = iterate_done;
++        return 1;
++    }
++    static int iterate_done(copybit_region_t const *, copybit_rect_t*) {
++        return 0;
++    }
++public:
++    copybit_rect_t r;
++};
++
++static bool supportedCopybitsFormat(int format) {
++    switch (format) {
++    case COPYBIT_FORMAT_RGBA_8888:
++    case COPYBIT_FORMAT_RGBX_8888:
++    case COPYBIT_FORMAT_RGB_888:
++    case COPYBIT_FORMAT_RGB_565:
++    case COPYBIT_FORMAT_BGRA_8888:
++    case COPYBIT_FORMAT_RGBA_5551:
++    case COPYBIT_FORMAT_RGBA_4444:
++        return true;
++    default:
++        return false;
++    }
++}
++
++static bool hasAlpha(int format) {
++    switch (format) {
++    case COPYBIT_FORMAT_RGBA_8888:
++    case COPYBIT_FORMAT_BGRA_8888:
++    case COPYBIT_FORMAT_RGBA_5551:
++    case COPYBIT_FORMAT_RGBA_4444:
++        return true;
++    default:
++        return false;
++    }
++}
++
++static inline int fixedToByte(GGLfixed val) {
++    return (val - (val >> 8)) >> 8;
++}
++
++/**
++ * Performs a quick check of the rendering state. If this function returns
++ * false we cannot use the copybit driver.
++ */
++
++static bool checkContext(ogles_context_t* c) {
++
++	// By convention copybitQuickCheckContext() has already returned true.
++	// avoid checking the same information again.
++
++    if (c->copybits.blitEngine == NULL) {
++        ALOGD_IF(DEBUG_COPYBIT, "no copybit hal");
++        return false;
++    }
++
++    if (c->rasterizer.state.enables
++                    & (GGL_ENABLE_DEPTH_TEST|GGL_ENABLE_FOG)) {
++        ALOGD_IF(DEBUG_COPYBIT, "depth test and/or fog");
++        return false;
++    }
++
++    // Note: The drawSurfaceBuffer is only set for destination
++    // surfaces types that are supported by the hardware and
++    // do not have an alpha channel. So we don't have to re-check that here.
++
++    static const int tmu = 0;
++    texture_unit_t& u(c->textures.tmu[tmu]);
++    EGLTextureObject* textureObject = u.texture;
++
++    if (!supportedCopybitsFormat(textureObject->surface.format)) {
++        ALOGD_IF(DEBUG_COPYBIT, "texture format not supported");
++        return false;
++    }
++    return true;
++}
++
++
++static bool copybit(GLint x, GLint y,
++        GLint w, GLint h,
++        EGLTextureObject* textureObject,
++        const GLint* crop_rect,
++        int transform,
++        ogles_context_t* c)
++{
++    status_t err = NO_ERROR;
++
++    // We assume checkContext has already been called and has already
++    // returned true.
++
++    const GGLSurface& cbSurface = c->rasterizer.state.buffers.color.s;
++
++    y = cbSurface.height - (y + h);
++
++    const GLint Ucr = crop_rect[0];
++    const GLint Vcr = crop_rect[1];
++    const GLint Wcr = crop_rect[2];
++    const GLint Hcr = crop_rect[3];
++
++    GLint screen_w = w;
++    GLint screen_h = h;
++    int32_t dsdx = Wcr << 16;   // dsdx =  ((Wcr/screen_w)/Wt)*Wt
++    int32_t dtdy = Hcr << 16;   // dtdy = -((Hcr/screen_h)/Ht)*Ht
++    if (transform & COPYBIT_TRANSFORM_ROT_90) {
++        swap(screen_w, screen_h);
++    }
++    if (dsdx!=screen_w || dtdy!=screen_h) {
++        // in most cases the divide is not needed
++        dsdx /= screen_w;
++        dtdy /= screen_h;
++    }
++    dtdy = -dtdy; // see equation of dtdy above
++
++    // copybit doesn't say anything about filtering, so we can't
++    // discriminate. On msm7k, copybit will always filter.
++    // the code below handles min/mag filters, we keep it as a reference.
++    
++#ifdef MIN_MAG_FILTER
++    int32_t texelArea = gglMulx(dtdy, dsdx);
++    if (texelArea < FIXED_ONE && textureObject->mag_filter != GL_LINEAR) {
++        // Non-linear filtering on a texture enlargement.
++        ALOGD_IF(DEBUG_COPYBIT, "mag filter is not GL_LINEAR");
++        return false;
++    }
++    if (texelArea > FIXED_ONE && textureObject->min_filter != GL_LINEAR) {
++        // Non-linear filtering on an texture shrink.
++        ALOGD_IF(DEBUG_COPYBIT, "min filter is not GL_LINEAR");
++        return false;
++    }
++#endif
++    
++    const uint32_t enables = c->rasterizer.state.enables;
++    int planeAlpha = 255;
++    bool alphaPlaneWorkaround = false;
++    static const int tmu = 0;
++    texture_t& tev(c->rasterizer.state.texture[tmu]);
++    int32_t opFormat = textureObject->surface.format;
++    const bool srcTextureHasAlpha = hasAlpha(opFormat);
++    if (!srcTextureHasAlpha) {
++        planeAlpha = fixedToByte(c->currentColorClamped.a);
++    }
++
++    const bool cbHasAlpha = hasAlpha(cbSurface.format);
++    bool blending = false;
++    if ((enables & GGL_ENABLE_BLENDING)
++            && !(c->rasterizer.state.blend.src == GL_ONE
++                    && c->rasterizer.state.blend.dst == GL_ZERO)) {
++        // Blending is OK if it is
++        // the exact kind of blending that the copybits hardware supports.
++        // Note: The hardware only supports
++        // GL_SRC_ALPHA / GL_ONE_MINUS_SRC_ALPHA,
++        // But the surface flinger uses GL_ONE / GL_ONE_MINUS_SRC_ALPHA.
++        // We substitute GL_SRC_ALPHA / GL_ONE_MINUS_SRC_ALPHA in that case,
++        // because the performance is worth it, even if the results are
++        // not correct.
++        if (!((c->rasterizer.state.blend.src == GL_SRC_ALPHA
++                || c->rasterizer.state.blend.src == GL_ONE)
++                && c->rasterizer.state.blend.dst == GL_ONE_MINUS_SRC_ALPHA
++                && c->rasterizer.state.blend.alpha_separate == 0)) {
++            // Incompatible blend mode.
++            ALOGD_IF(DEBUG_COPYBIT, "incompatible blend mode");
++            return false;
++        }
++        blending = true;
++    } else {
++        if (cbHasAlpha) {
++            // NOTE: the result will be slightly wrong in this case because
++            // the destination alpha channel will be set to 1.0 instead of
++            // the iterated alpha value. *shrug*.
++        }
++        // disable plane blending and src blending for supported formats
++        planeAlpha = 255;
++        if (opFormat == COPYBIT_FORMAT_RGBA_8888) {
++            opFormat = COPYBIT_FORMAT_RGBX_8888;
++        } else {
++            if (srcTextureHasAlpha) {
++                ALOGD_IF(DEBUG_COPYBIT, "texture format requires blending");
++                return false;
++            }
++        }
++    }
++
++    switch (tev.env) {
++    case GGL_REPLACE:
++        break;
++    case GGL_MODULATE:
++        // only cases allowed is:
++        // RGB  source, color={1,1,1,a} -> can be done with GL_REPLACE
++        // RGBA source, color={1,1,1,1} -> can be done with GL_REPLACE
++        if (blending) {
++            if (c->currentColorClamped.r == c->currentColorClamped.a &&
++                c->currentColorClamped.g == c->currentColorClamped.a &&
++                c->currentColorClamped.b == c->currentColorClamped.a) {
++                // TODO: RGBA source, color={1,1,1,a} / regular-blending
++                // is equivalent
++                alphaPlaneWorkaround = true;
++                break;
++            }
++        }
++        ALOGD_IF(DEBUG_COPYBIT, "GGL_MODULATE");
++        return false;
++    default:
++        // Incompatible texture environment.
++        ALOGD_IF(DEBUG_COPYBIT, "incompatible texture environment");
++        return false;
++    }
++
++    copybit_device_t* copybit = c->copybits.blitEngine;
++    copybit_image_t src;
++    textureToCopyBitImage(&textureObject->surface, opFormat,
++            textureObject->buffer, &src);
++    copybit_rect_t srect = { Ucr, Vcr + Hcr, Ucr + Wcr, Vcr };
++
++    /*
++     *  Below we perform extra passes needed to emulate things the h/w
++     * cannot do.
++     */
++
++    const GLfixed minScaleInv = gglDivQ(0x10000, c->copybits.minScale, 16);
++    const GLfixed maxScaleInv = gglDivQ(0x10000, c->copybits.maxScale, 16);
++
++    sp<GraphicBuffer> tempBitmap;
++
++    if (dsdx < maxScaleInv || dsdx > minScaleInv ||
++        dtdy < maxScaleInv || dtdy > minScaleInv)
++    {
++        // The requested scale is out of the range the hardware
++        // can support.
++        ALOGD_IF(DEBUG_COPYBIT,
++                "scale out of range dsdx=%08x (Wcr=%d / w=%d), "
++                "dtdy=%08x (Hcr=%d / h=%d), Ucr=%d, Vcr=%d",
++                dsdx, Wcr, w, dtdy, Hcr, h, Ucr, Vcr);
++
++        int32_t xscale=0x10000, yscale=0x10000;
++        if (dsdx > minScaleInv)         xscale = c->copybits.minScale;
++        else if (dsdx < maxScaleInv)    xscale = c->copybits.maxScale;
++        if (dtdy > minScaleInv)         yscale = c->copybits.minScale;
++        else if (dtdy < maxScaleInv)    yscale = c->copybits.maxScale;
++        dsdx = gglMulx(dsdx, xscale);
++        dtdy = gglMulx(dtdy, yscale);
++
++        /* we handle only one step of resizing below. Handling an arbitrary
++         * number is relatively easy (replace "if" above by "while"), but requires
++         * two intermediate buffers and so far we never had the need.
++         */
++
++        if (dsdx < maxScaleInv || dsdx > minScaleInv ||
++            dtdy < maxScaleInv || dtdy > minScaleInv) {
++            ALOGD_IF(DEBUG_COPYBIT,
++                    "scale out of range dsdx=%08x (Wcr=%d / w=%d), "
++                    "dtdy=%08x (Hcr=%d / h=%d), Ucr=%d, Vcr=%d",
++                    dsdx, Wcr, w, dtdy, Hcr, h, Ucr, Vcr);
++            return false;
++        }
++
++        const int tmp_w = gglMulx(srect.r - srect.l, xscale, 16);
++        const int tmp_h = gglMulx(srect.b - srect.t, yscale, 16);
++
++        ALOGD_IF(DEBUG_COPYBIT,
++                "xscale=%08x, yscale=%08x, dsdx=%08x, dtdy=%08x, tmp_w=%d, tmp_h=%d",
++                xscale, yscale, dsdx, dtdy, tmp_w, tmp_h);
++
++        tempBitmap = new GraphicBuffer(
++                    tmp_w, tmp_h, src.format,
++                    GraphicBuffer::USAGE_HW_2D);
++
++        err = tempBitmap->initCheck();
++        if (err == NO_ERROR) {
++            copybit_image_t tmp_dst;
++            copybit_rect_t tmp_rect;
++            tmp_dst.w = tmp_w;
++            tmp_dst.h = tmp_h;
++            tmp_dst.format = tempBitmap->format;
++            tmp_dst.handle = (native_handle_t*)tempBitmap->getNativeBuffer()->handle;
++            tmp_rect.l = 0;
++            tmp_rect.t = 0;
++            tmp_rect.r = tmp_dst.w;
++            tmp_rect.b = tmp_dst.h;
++            region_iterator tmp_it(Region(Rect(tmp_rect.r, tmp_rect.b)));
++            copybit->set_parameter(copybit, COPYBIT_TRANSFORM, 0);
++            copybit->set_parameter(copybit, COPYBIT_PLANE_ALPHA, 0xFF);
++            copybit->set_parameter(copybit, COPYBIT_DITHER, COPYBIT_DISABLE);
++            err = copybit->stretch(copybit,
++                    &tmp_dst, &src, &tmp_rect, &srect, &tmp_it);
++            src = tmp_dst;
++            srect = tmp_rect;
++        }
++    }
++
++    copybit_image_t dst;
++    textureToCopyBitImage(&cbSurface, cbSurface.format,
++            c->copybits.drawSurfaceBuffer, &dst);
++    copybit_rect_t drect = {x, y, x+w, y+h};
++
++
++    /* and now the alpha-plane hack. This handles the "Fade" case of a
++     * texture with an alpha channel.
++     */
++    if (alphaPlaneWorkaround) {
++        sp<GraphicBuffer> tempCb = new GraphicBuffer(
++                    w, h, COPYBIT_FORMAT_RGB_565,
++                    GraphicBuffer::USAGE_HW_2D);
++
++        err = tempCb->initCheck();
++
++        copybit_image_t tmpCbImg;
++        copybit_rect_t tmpCbRect;
++        copybit_rect_t tmpdrect = drect;
++        tmpCbImg.w = w;
++        tmpCbImg.h = h;
++        tmpCbImg.format = tempCb->format;
++        tmpCbImg.handle = (native_handle_t*)tempCb->getNativeBuffer()->handle;
++        tmpCbRect.l = 0;
++        tmpCbRect.t = 0;
++
++        if (drect.l < 0) {
++            tmpCbRect.l = -tmpdrect.l;
++            tmpdrect.l = 0;
++        }
++        if (drect.t < 0) {
++            tmpCbRect.t = -tmpdrect.t;
++            tmpdrect.t = 0;
++        }
++        if (drect.l + tmpCbImg.w > dst.w) {
++            tmpCbImg.w = dst.w - drect.l;
++            tmpdrect.r = dst.w;
++        }
++        if (drect.t + tmpCbImg.h > dst.h) {
++            tmpCbImg.h = dst.h - drect.t;
++            tmpdrect.b = dst.h;
++        }
++
++        tmpCbRect.r = tmpCbImg.w;
++        tmpCbRect.b = tmpCbImg.h;
++
++        if (!err) {
++            // first make a copy of the destination buffer
++            region_iterator tmp_it(Region(Rect(w, h)));
++            copybit->set_parameter(copybit, COPYBIT_TRANSFORM, 0);
++            copybit->set_parameter(copybit, COPYBIT_PLANE_ALPHA, 0xFF);
++            copybit->set_parameter(copybit, COPYBIT_DITHER, COPYBIT_DISABLE);
++            err = copybit->stretch(copybit,
++                    &tmpCbImg, &dst, &tmpCbRect, &tmpdrect, &tmp_it);
++        }
++        if (!err) {
++            // then proceed as usual, but without the alpha plane
++            copybit->set_parameter(copybit, COPYBIT_TRANSFORM, transform);
++            copybit->set_parameter(copybit, COPYBIT_PLANE_ALPHA, 0xFF);
++            copybit->set_parameter(copybit, COPYBIT_DITHER,
++                    (enables & GGL_ENABLE_DITHER) ?
++                            COPYBIT_ENABLE : COPYBIT_DISABLE);
++            clipRectRegion it(c);
++            err = copybit->stretch(copybit, &dst, &src, &drect, &srect, &it);
++        }
++        if (!err) {
++            // finally copy back the destination on top with 1-alphaplane
++            int invPlaneAlpha = 0xFF - fixedToByte(c->currentColorClamped.a);
++            clipRectRegion it(c);
++            copybit->set_parameter(copybit, COPYBIT_TRANSFORM, 0);
++            copybit->set_parameter(copybit, COPYBIT_PLANE_ALPHA, invPlaneAlpha);
++            copybit->set_parameter(copybit, COPYBIT_DITHER, COPYBIT_ENABLE);
++            err = copybit->stretch(copybit,
++                    &dst, &tmpCbImg, &tmpdrect, &tmpCbRect, &it);
++        }
++    } else {
++        copybit->set_parameter(copybit, COPYBIT_TRANSFORM, transform);
++        copybit->set_parameter(copybit, COPYBIT_PLANE_ALPHA, planeAlpha);
++        copybit->set_parameter(copybit, COPYBIT_DITHER,
++                (enables & GGL_ENABLE_DITHER) ?
++                        COPYBIT_ENABLE : COPYBIT_DISABLE);
++        clipRectRegion it(c);
++
++        ALOGD_IF(0,
++             "dst={%d, %d, %d, %p, %p}, "
++             "src={%d, %d, %d, %p, %p}, "
++             "drect={%d,%d,%d,%d}, "
++             "srect={%d,%d,%d,%d}, "
++             "it={%d,%d,%d,%d}, " ,
++             dst.w, dst.h, dst.format, dst.base, dst.handle,
++             src.w, src.h, src.format, src.base, src.handle,
++             drect.l, drect.t, drect.r, drect.b,
++             srect.l, srect.t, srect.r, srect.b,
++             it.r.l, it.r.t, it.r.r, it.r.b
++        );
++
++        err = copybit->stretch(copybit, &dst, &src, &drect, &srect, &it);
++    }
++    if (err != NO_ERROR) {
++        c->textures.tmu[0].texture->try_copybit = false;
++    }
++    return err == NO_ERROR ? true : false;
++}
++
++/*
++ * Try to draw a triangle fan with copybit, return false if we fail.
++ */
++bool drawTriangleFanWithCopybit_impl(ogles_context_t* c, GLint first, GLsizei count)
++{
++    if (!checkContext(c)) {
++        return false;
++    }
++
++    // FIXME: we should handle culling  here
++    c->arrays.compileElements(c, c->vc.vBuffer, 0, 4);
++
++    // we detect if we're dealing with a rectangle, by comparing the
++    // rectangles {v0,v2} and {v1,v3} which should be identical.
++    
++    // NOTE: we should check that the rectangle is window aligned, however
++    // if we do that, the optimization won't be taken in a lot of cases.
++    // Since this code is intended to be used with SurfaceFlinger only,
++    // so it's okay...
++    
++    const vec4_t& v0 = c->vc.vBuffer[0].window;
++    const vec4_t& v1 = c->vc.vBuffer[1].window;
++    const vec4_t& v2 = c->vc.vBuffer[2].window;
++    const vec4_t& v3 = c->vc.vBuffer[3].window;
++    int l = min(v0.x, v2.x);
++    int b = min(v0.y, v2.y);
++    int r = max(v0.x, v2.x);
++    int t = max(v0.y, v2.y);
++    if ((l != min(v1.x, v3.x)) || (b != min(v1.y, v3.y)) ||
++        (r != max(v1.x, v3.x)) || (t != max(v1.y, v3.y))) {
++        ALOGD_IF(DEBUG_COPYBIT, "geometry not a rectangle");
++        return false;
++    }
++
++    // fetch and transform texture coordinates
++    // NOTE: maybe it would be better to have a "compileElementsAll" method
++    // that would ensure all vertex data are fetched and transformed
++    const transform_t& tr = c->transforms.texture[0].transform; 
++    for (size_t i=0 ; i<4 ; i++) {
++        const GLubyte* tp = c->arrays.texture[0].element(i);
++        vertex_t* const v = &c->vc.vBuffer[i];
++        c->arrays.texture[0].fetch(c, v->texture[0].v, tp);
++        // FIXME: we should bail if q!=1
++        c->arrays.tex_transform[0](&tr, &v->texture[0], &v->texture[0]);
++    }
++    
++    const vec4_t& t0 = c->vc.vBuffer[0].texture[0];
++    const vec4_t& t1 = c->vc.vBuffer[1].texture[0];
++    const vec4_t& t2 = c->vc.vBuffer[2].texture[0];
++    const vec4_t& t3 = c->vc.vBuffer[3].texture[0];
++    int txl = min(t0.x, t2.x);
++    int txb = min(t0.y, t2.y);
++    int txr = max(t0.x, t2.x);
++    int txt = max(t0.y, t2.y);
++    if ((txl != min(t1.x, t3.x)) || (txb != min(t1.y, t3.y)) ||
++        (txr != max(t1.x, t3.x)) || (txt != max(t1.y, t3.y))) {
++        ALOGD_IF(DEBUG_COPYBIT, "texcoord not a rectangle");
++        return false;
++    }
++    if ((txl != 0) || (txb != 0) ||
++        (txr != FIXED_ONE) || (txt != FIXED_ONE)) {
++        // we could probably handle this case, if we wanted to
++        ALOGD_IF(DEBUG_COPYBIT, "texture is cropped: %08x,%08x,%08x,%08x",
++                txl, txb, txr, txt);
++        return false;
++    }
++
++    // at this point, we know we are dealing with a rectangle, so we 
++    // only need to consider 3 vertices for computing the jacobians
++    
++    const long long dx01 = v1.x - v0.x;
++    const long long dx02 = v2.x - v0.x;
++    const long long dy01 = v1.y - v0.y;
++    const long long dy02 = v2.y - v0.y;
++    const long long ds01 = t1.S - t0.S;
++    const long long ds02 = t2.S - t0.S;
++    const long long dt01 = t1.T - t0.T;
++    const long long dt02 = t2.T - t0.T;
++    const long long area = dx01*dy02 - dy01*dx02;
++    long long dsdx, dsdy, dtdx, dtdy;
++    if (area >= 0) {
++        dsdx = ds01*dy02 - ds02*dy01;
++        dtdx = dt01*dy02 - dt02*dy01;
++        dsdy = ds02*dx01 - ds01*dx02;
++        dtdy = dt02*dx01 - dt01*dx02;
++    } else {
++        dsdx = ds02*dy01 - ds01*dy02;
++        dtdx = dt02*dy01 - dt01*dy02;
++        dsdy = ds01*dx02 - ds02*dx01;
++        dtdy = dt01*dx02 - dt02*dx01;
++    }
++
++    // here we rely on the fact that we know the transform is
++    // a rigid-body transform AND that it can only rotate in 90 degrees
++    // increments
++
++    int transform = 0;
++    if (dsdx == 0) {
++        // 90 deg rotation case
++        // [ 0    dtdx  ]
++        // [ dsdx    0  ]
++        transform |= COPYBIT_TRANSFORM_ROT_90;
++        // FIXME: not sure if FLIP_H and FLIP_V shouldn't be inverted
++        if (dtdx > 0)
++            transform |= COPYBIT_TRANSFORM_FLIP_H;
++        if (dsdy < 0)
++            transform |= COPYBIT_TRANSFORM_FLIP_V;
++    } else {
++        // [ dsdx    0  ]
++        // [ 0     dtdy ]
++        if (dsdx < 0)
++            transform |= COPYBIT_TRANSFORM_FLIP_H;
++        if (dtdy < 0)
++            transform |= COPYBIT_TRANSFORM_FLIP_V;
++    }
++
++    //ALOGD("l=%d, b=%d, w=%d, h=%d, tr=%d", x, y, w, h, transform);
++    //ALOGD("A=%f\tB=%f\nC=%f\tD=%f",
++    //      dsdx/65536.0, dtdx/65536.0, dsdy/65536.0, dtdy/65536.0);
++
++    int x = l >> 4;
++    int y = b >> 4;
++    int w = (r-l) >> 4;
++    int h = (t-b) >> 4;
++    texture_unit_t& u(c->textures.tmu[0]);
++    EGLTextureObject* textureObject = u.texture;
++    GLint tWidth = textureObject->surface.width;
++    GLint tHeight = textureObject->surface.height;
++    GLint crop_rect[4] = {0, tHeight, tWidth, -tHeight};
++    const GGLSurface& cbSurface = c->rasterizer.state.buffers.color.s;
++    y = cbSurface.height - (y + h);
++    return copybit(x, y, w, h, textureObject, crop_rect, transform, c);
++}
++
++/*
++ * Try to drawTexiOESWithCopybit, return false if we fail.
++ */
++
++bool drawTexiOESWithCopybit_impl(GLint x, GLint y, GLint z,
++        GLint w, GLint h, ogles_context_t* c)
++{
++    // quickly process empty rects
++    if ((w|h) <= 0) {
++        return true;
++    }
++    if (!checkContext(c)) {
++        return false;
++    }
++    texture_unit_t& u(c->textures.tmu[0]);
++    EGLTextureObject* textureObject = u.texture;
++    return copybit(x, y, w, h, textureObject, textureObject->crop_rect, 0, c);
++}
++
++} // namespace android
+diff --git a/opengl/libagl/copybit.h b/opengl/libagl/copybit.h
+new file mode 100644
+index 0000000..f5e2f4c
+--- /dev/null
++++ b/opengl/libagl/copybit.h
+@@ -0,0 +1,75 @@
++/*
++**
++** Copyright 2009, The Android Open Source Project
++**
++** Licensed under the Apache License, Version 2.0 (the "License");
++** you may not use this file except in compliance with the License.
++** You may obtain a copy of the License at
++**
++**     http://www.apache.org/licenses/LICENSE-2.0
++**
++** Unless required by applicable law or agreed to in writing, software
++** distributed under the License is distributed on an "AS IS" BASIS,
++** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++** See the License for the specific language governing permissions and
++** limitations under the License.
++*/
++
++#ifndef ANDROID_OPENGLES_COPYBIT_H
++#define ANDROID_OPENGLES_COPYBIT_H
++
++#include <stdlib.h>
++
++#include <GLES/gl.h>
++
++#include "TextureObjectManager.h"
++namespace android {
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++
++bool drawTexiOESWithCopybit_impl(GLint x, GLint y, GLint z,
++        GLint w, GLint h, ogles_context_t* c);
++
++bool drawTriangleFanWithCopybit_impl(ogles_context_t* c, GLint first,
++        GLsizei count);
++
++inline bool copybitQuickCheckContext(ogles_context_t* c) {
++        return  c->copybits.drawSurfaceBuffer != 0
++            && c->rasterizer.state.enabled_tmu == 1
++            && c->textures.tmu[0].texture->try_copybit;
++}
++
++/*
++ * Tries to draw a drawTexiOES using copybit hardware.
++ * Returns true if successful.
++ */
++inline bool drawTexiOESWithCopybit(GLint x, GLint y, GLint z,
++        GLint w, GLint h, ogles_context_t* c) {
++    if (!copybitQuickCheckContext(c)) {
++        return false;
++        }
++
++        return drawTexiOESWithCopybit_impl(x, y, z, w, h, c);
++}
++
++/*
++ * Tries to draw a triangle fan using copybit hardware.
++ * Returns true if successful.
++ */
++inline bool drawTriangleFanWithCopybit(ogles_context_t* c, GLint first,
++        GLsizei count) {
++    /*
++     * We are looking for the glDrawArrays call made by SurfaceFlinger.
++     */
++
++    if ((count!=4) || first || !copybitQuickCheckContext(c))
++        return false;
++    
++    return drawTriangleFanWithCopybit_impl(c, first, count);
++}
++
++
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
++
++} // namespace android
++
++#endif // ANDROID_OPENGLES_COPYBIT_H
+diff --git a/opengl/libagl/egl.cpp b/opengl/libagl/egl.cpp
+index c31aebf..ced7aa3 100644
+--- a/opengl/libagl/egl.cpp
++++ b/opengl/libagl/egl.cpp
+@@ -40,6 +40,10 @@
+ #include <pixelflinger/format.h>
+ #include <pixelflinger/pixelflinger.h>
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++#include <hardware/copybit.h>
++#endif
++
+ #include "context.h"
+ #include "state.h"
+ #include "texture.h"
+@@ -241,6 +245,9 @@ private:
+     ANativeWindowBuffer*   buffer;
+     ANativeWindowBuffer*   previousBuffer;
+     gralloc_module_t const*    module;
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    copybit_device_t*          blitengine;
++#endif
+     int width;
+     int height;
+     void* bits;
+@@ -325,7 +332,27 @@ private:
+         Rect storage[4];
+         ssize_t count;
+     };
+-    
++
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    struct region_iterator : public copybit_region_t {
++        region_iterator(const Region& region)
++            : b(region.begin()), e(region.end()) {
++            this->next = iterate;
++        }
++    private:
++        static int iterate(copybit_region_t const * self, copybit_rect_t* rect) {
++            region_iterator const* me = static_cast<region_iterator const*>(self);
++            if (me->b != me->e) {
++                *reinterpret_cast<Rect*>(rect) = *me->b++;
++                return 1;
++            }
++            return 0;
++        }
++        mutable Region::const_iterator b;
++        Region::const_iterator const e;
++    };
++#endif
++
+     void copyBlt(
+             ANativeWindowBuffer* dst, void* dst_vaddr,
+             ANativeWindowBuffer* src, void const* src_vaddr,
+@@ -341,12 +368,22 @@ egl_window_surface_v2_t::egl_window_surface_v2_t(EGLDisplay dpy,
+         ANativeWindow* window)
+     : egl_surface_t(dpy, config, depthFormat), 
+     nativeWindow(window), buffer(0), previousBuffer(0), module(0),
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    blitengine(0), bits(NULL)
++#else
+     bits(NULL)
++#endif
+ {
+     hw_module_t const* pModule;
+     hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &pModule);
+     module = reinterpret_cast<gralloc_module_t const*>(pModule);
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    if (hw_get_module(COPYBIT_HARDWARE_MODULE_ID, &pModule) == 0) {
++        copybit_open(pModule, &blitengine);
++    }
++#endif
++
+     pixelFormatTable = gglGetPixelFormatTable();
+     
+     // keep a reference on the window
+@@ -363,6 +400,11 @@ egl_window_surface_v2_t::~egl_window_surface_v2_t() {
+         previousBuffer->common.decRef(&previousBuffer->common); 
+     }
+     nativeWindow->common.decRef(&nativeWindow->common);
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    if (blitengine) {
++        copybit_close(blitengine);
++    }
++#endif
+ }
+ 
+ EGLBoolean egl_window_surface_v2_t::connect() 
+@@ -451,33 +493,64 @@ void egl_window_surface_v2_t::copyBlt(
+ {
+     // NOTE: dst and src must be the same format
+     
+-    Region::const_iterator cur = clip.begin();
+-    Region::const_iterator end = clip.end();
+-
+-    const size_t bpp = pixelFormatTable[src->format].size;
+-    const size_t dbpr = dst->stride * bpp;
+-    const size_t sbpr = src->stride * bpp;
+-
+-    uint8_t const * const src_bits = (uint8_t const *)src_vaddr;
+-    uint8_t       * const dst_bits = (uint8_t       *)dst_vaddr;
+-
+-    while (cur != end) {
+-        const Rect& r(*cur++);
+-        ssize_t w = r.right - r.left;
+-        ssize_t h = r.bottom - r.top;
+-        if (w <= 0 || h<=0) continue;
+-        size_t size = w * bpp;
+-        uint8_t const * s = src_bits + (r.left + src->stride * r.top) * bpp;
+-        uint8_t       * d = dst_bits + (r.left + dst->stride * r.top) * bpp;
+-        if (dbpr==sbpr && size==sbpr) {
+-            size *= h;
+-            h = 1;
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    status_t err = NO_ERROR;
++    copybit_device_t* const copybit = blitengine;
++    if (copybit)  {
++        copybit_image_t simg;
++        simg.w = src->stride;
++        simg.h = src->height;
++        simg.format = src->format;
++        simg.handle = const_cast<native_handle_t*>(src->handle);
++
++        copybit_image_t dimg;
++        dimg.w = dst->stride;
++        dimg.h = dst->height;
++        dimg.format = dst->format;
++        dimg.handle = const_cast<native_handle_t*>(dst->handle);
++
++        copybit->set_parameter(copybit, COPYBIT_TRANSFORM, 0);
++        copybit->set_parameter(copybit, COPYBIT_PLANE_ALPHA, 255);
++        copybit->set_parameter(copybit, COPYBIT_DITHER, COPYBIT_DISABLE);
++        region_iterator it(clip);
++        err = copybit->blit(copybit, &dimg, &simg, &it);
++        if (err != NO_ERROR) {
++            ALOGE("copybit failed (%s)", strerror(err));
++         }
++    }
++
++    if (!copybit || err) {
++#endif
++        Region::const_iterator cur = clip.begin();
++        Region::const_iterator end = clip.end();
++
++        const size_t bpp = pixelFormatTable[src->format].size;
++        const size_t dbpr = dst->stride * bpp;
++        const size_t sbpr = src->stride * bpp;
++
++        uint8_t const * const src_bits = (uint8_t const *)src_vaddr;
++        uint8_t       * const dst_bits = (uint8_t       *)dst_vaddr;
++
++        while (cur != end) {
++            const Rect& r(*cur++);
++            ssize_t w = r.right - r.left;
++            ssize_t h = r.bottom - r.top;
++            if (w <= 0 || h<=0) continue;
++            size_t size = w * bpp;
++            uint8_t const * s = src_bits + (r.left + src->stride * r.top) * bpp;
++            uint8_t       * d = dst_bits + (r.left + dst->stride * r.top) * bpp;
++            if (dbpr==sbpr && size==sbpr) {
++                size *= h;
++                h = 1;
++            }
++            do {
++                memcpy(d, s, size);
++                d += dbpr;
++                s += sbpr;
++            } while (--h > 0);
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
+         }
+-        do {
+-            memcpy(d, s, size);
+-            d += dbpr;
+-            s += sbpr;
+-        } while (--h > 0);
++#endif
+     }
+ }
+ 
+@@ -571,6 +644,22 @@ EGLBoolean egl_window_surface_v2_t::setSwapRectangle(
+     return EGL_TRUE;
+ }
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++static bool supportedCopybitsDestinationFormat(int format) {
++    // Hardware supported
++    switch (format) {
++    case HAL_PIXEL_FORMAT_RGB_565:
++    case HAL_PIXEL_FORMAT_RGBA_8888:
++    case HAL_PIXEL_FORMAT_RGBX_8888:
++    case HAL_PIXEL_FORMAT_RGBA_4444:
++    case HAL_PIXEL_FORMAT_RGBA_5551:
++    case HAL_PIXEL_FORMAT_BGRA_8888:
++        return true;
++    }
++    return false;
++}
++#endif
++
+ EGLBoolean egl_window_surface_v2_t::bindDrawSurface(ogles_context_t* gl)
+ {
+     GGLSurface buffer;
+@@ -584,6 +673,18 @@ EGLBoolean egl_window_surface_v2_t::bindDrawSurface(ogles_context_t* gl)
+     if (depth.data != gl->rasterizer.state.buffers.depth.data)
+         gl->rasterizer.procs.depthBuffer(gl, &depth);
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    gl->copybits.drawSurfaceBuffer = 0;
++    if (gl->copybits.blitEngine != NULL) {
++        if (supportedCopybitsDestinationFormat(buffer.format)) {
++            buffer_handle_t handle = this->buffer->handle;
++            if (handle != NULL) {
++                gl->copybits.drawSurfaceBuffer = this->buffer;
++            }
++        }
++    }
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
++
+     return EGL_TRUE;
+ }
+ EGLBoolean egl_window_surface_v2_t::bindReadSurface(ogles_context_t* gl)
+diff --git a/opengl/libagl/state.cpp b/opengl/libagl/state.cpp
+index 4bc653a..9a8db6e 100644
+--- a/opengl/libagl/state.cpp
++++ b/opengl/libagl/state.cpp
+@@ -28,6 +28,10 @@
+ #include "BufferObjectManager.h"
+ #include "TextureObjectManager.h"
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++#include <hardware/copybit.h>
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
++
+ namespace android {
+ 
+ // ----------------------------------------------------------------------------
+@@ -98,6 +102,35 @@ ogles_context_t *ogles_init(size_t extra)
+     // OpenGL enables dithering by default
+     c->rasterizer.procs.enable(c, GL_DITHER);
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    c->copybits.blitEngine = NULL;
++    c->copybits.minScale = 0;
++    c->copybits.maxScale = 0;
++    c->copybits.drawSurfaceBuffer = 0;
++
++    hw_module_t const* module;
++    if (hw_get_module(COPYBIT_HARDWARE_MODULE_ID, &module) == 0) {
++        struct copybit_device_t* copyBits;
++        if (copybit_open(module, &copyBits) == 0) {
++            c->copybits.blitEngine = copyBits;
++            {
++                int minLim = copyBits->get(copyBits,
++                        COPYBIT_MINIFICATION_LIMIT);
++                if (minLim != -EINVAL && minLim > 0) {
++                    c->copybits.minScale = (1 << 16) / minLim;
++                }
++            }
++            {
++                int magLim = copyBits->get(copyBits,
++                        COPYBIT_MAGNIFICATION_LIMIT);
++                if (magLim != -EINVAL && magLim > 0) {
++                    c->copybits.maxScale = min(32*1024-1, magLim) << 16;
++                }
++            }
++        }
++    }
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
++
+     return c;
+ }
+ 
+@@ -112,6 +145,11 @@ void ogles_uninit(ogles_context_t* c)
+     c->bufferObjectManager->decStrong(c);
+     ggl_uninit_context(&(c->rasterizer));
+     free(c->rasterizer.base);
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    if (c->copybits.blitEngine != NULL) {
++        copybit_close((struct copybit_device_t*) c->copybits.blitEngine);
++    }
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
+ }
+ 
+ void _ogles_error(ogles_context_t* c, GLenum error)
+diff --git a/opengl/libagl/texture.cpp b/opengl/libagl/texture.cpp
+index 08536df..7769af9 100644
+--- a/opengl/libagl/texture.cpp
++++ b/opengl/libagl/texture.cpp
+@@ -25,6 +25,10 @@
+ 
+ #include <ETC1/etc1.h>
+ 
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++#include "copybit.h"
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
++
+ namespace android {
+ 
+ // ----------------------------------------------------------------------------
+@@ -758,9 +762,17 @@ static void drawTexxOESImp(GLfixed x, GLfixed y, GLfixed z, GLfixed w, GLfixed h
+ static void drawTexxOES(GLfixed x, GLfixed y, GLfixed z, GLfixed w, GLfixed h,
+         ogles_context_t* c)
+ {
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    if (drawTexiOESWithCopybit(gglFixedToIntRound(x),
++            gglFixedToIntRound(y), gglFixedToIntRound(z),
++            gglFixedToIntRound(w), gglFixedToIntRound(h), c)) {
++        return;
++    }
++#else
+     // quickly reject empty rects
+     if ((w|h) <= 0)
+         return;
++#endif
+ 
+     drawTexxOESImp(x, y, z, w, h, c);
+ }
+@@ -773,6 +785,11 @@ static void drawTexiOES(GLint x, GLint y, GLint z, GLint w, GLint h, ogles_conte
+     // which is a lot faster.
+ 
+     if (ggl_likely(c->rasterizer.state.enabled_tmu == 1)) {
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++        if (drawTexiOESWithCopybit(x, y, z, w, h, c)) {
++            return;
++        }
++#endif
+         const int tmu = 0;
+         texture_unit_t& u(c->textures.tmu[tmu]);
+         EGLTextureObject* textureObject = u.texture;
+@@ -780,7 +797,9 @@ static void drawTexiOES(GLint x, GLint y, GLint z, GLint w, GLint h, ogles_conte
+         const GLint Hcr = textureObject->crop_rect[3];
+ 
+         if ((w == Wcr) && (h == -Hcr)) {
++#ifndef LIBAGL_USE_GRALLOC_COPYBITS
+             if ((w|h) <= 0) return; // quickly reject empty rects
++#endif
+ 
+             if (u.dirty) {
+                 c->rasterizer.procs.activeTexture(c, tmu);
+@@ -1627,6 +1646,13 @@ void glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image)
+     // bind it to the texture unit
+     sp<EGLTextureObject> tex = getAndBindActiveTextureObject(c);
+     tex->setImage(native_buffer);
++#ifdef LIBAGL_USE_GRALLOC_COPYBITS
++    tex->try_copybit = false;
++    if (c->copybits.blitEngine != NULL) {
++        tex->try_copybit = true;
++        }
++#endif // LIBAGL_USE_GRALLOC_COPYBITS
++
+ }
+ 
+ void glEGLImageTargetRenderbufferStorageOES(GLenum target, GLeglImageOES image)
+-- 
+1.7.9.5
+
