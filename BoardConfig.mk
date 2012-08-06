@@ -58,17 +58,18 @@ WIFI_DRIVER_MODULE_ARG           := "iface_name=wlan0 firmware_path=/vendor/firm
 WIFI_DRIVER_MODULE_NAME          := "bcm4329"
 
 
-## kernel (TODO: compile at build)
-TARGET_PREBUILT_KERNEL := device/htc/buzz/prebuilt/kernel
-TARGET_RECOVERY_INITRC := device/htc/buzz/initramfs/init.recovery.rc
+## kernel
+TARGET_KERNEL_CONFIG   		:= buzz_defconfig
+TARGET_PREBUILT_KERNEL 		:= device/htc/buzz/prebuilt/kernel
+TARGET_RECOVERY_INITRC 		:= device/htc/buzz/initramfs/init.recovery.rc
 TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
 
-BOARD_KERNEL_CMDLINE := no_console_suspend=1 console=null
-BOARD_KERNEL_BASE := 0x02E00000
-BOARD_KERNEL_PAGESIZE := 2048
+BOARD_KERNEL_CMDLINE 		:= no_console_suspend=1 console=null
+BOARD_KERNEL_BASE 		:= 0x02E00000
+BOARD_KERNEL_PAGESIZE 		:= 2048
 
 # Enable network search
-# BOARD_PROVIDES_LIBRIL := true (TODO: find out what this does)
+# BOARD_PROVIDES_LIBRIL   := true (TODO: find out what this does)
 BOARD_USE_NEW_LIBRIL_HTC := true
 
 ## Buzz graphics
@@ -76,18 +77,18 @@ BOARD_NO_RGBX_8888 := true
 COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888 -DMISSING_EGL_EXTERNAL_IMAGE -DMISSING_EGL_PIXEL_FORMAT_YV12 -DMISSING_GRALLOC_BUFFERS -DUNABLE_TO_DEQUEUE
 BOARD_AVOID_DRAW_TEXTURE_EXTENSION := true
 TARGET_LIBAGL_USE_GRALLOC_COPYBITS := true
-TARGET_FORCE_CPU_UPLOAD := true
+TARGET_FORCE_CPU_UPLOAD 	   := true
 
-USE_OPENGL_RENDERER := false
-BOARD_EGL_CFG := device/htc/buzz/egl.cfg
-BOARD_HAS_LIMITED_EGL:=true
+USE_OPENGL_RENDERER   := false
+BOARD_EGL_CFG 	      := device/htc/buzz/egl.cfg
+BOARD_HAS_LIMITED_EGL :=true
 
 # Allow fallback to ashmem
-TARGET_GRALLOC_USES_ASHMEM := true
+TARGET_GRALLOC_USES_ASHMEM 	:= true
 
-TARGET_USES_GENLOCK := false
-TARGET_USES_C2D_COMPOSITION := false
-TARGET_HAVE_BYPASS := true
+TARGET_USES_GENLOCK 		:= false
+TARGET_USES_C2D_COMPOSITION 	:= false
+TARGET_HAVE_BYPASS 		:= true
 
 ## Qualcomm
 # camera
@@ -97,15 +98,15 @@ COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888 -DBINDER_COMPAT
 # audio (prevent breakage from QCOM_HARDWARE in system/audio.h)
 COMMON_GLOBAL_CFLAGS += -DLEGACY_AUDIO_COMPAT
 TARGET_PROVIDES_LIBAUDIO := true
-BOARD_USES_ICS_LIBAUDIO := true
-BOARD_USES_AUDIO_LEGACY := false
+BOARD_USES_ICS_LIBAUDIO  := true
+BOARD_USES_AUDIO_LEGACY  := false
 
 # GPS
 BOARD_GPS_LIBRARIES := libgps librpc
-BOARD_USES_GPSSHIM := true
+BOARD_USES_GPSSHIM  := true
 
 # bluetooth
-BOARD_HAVE_BLUETOOTH := true
+BOARD_HAVE_BLUETOOTH 	 := true
 BOARD_HAVE_BLUETOOTH_BCM := true
 
 # touchscreen
@@ -135,17 +136,17 @@ ENABLE_JSC_JIT := true
 # mtd4: 02800000 00020000 "cache"
 # mtd5: 0af20000 00020000 "userdata"
 # Changed for Buzz
-BOARD_BOOTIMAGE_PARTITION_SIZE := 2883584
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 4325376
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 262144000
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 183631872
-BOARD_FLASH_BLOCK_SIZE := 131072
+BOARD_BOOTIMAGE_PARTITION_SIZE 		:= 2883584
+BOARD_RECOVERYIMAGE_PARTITION_SIZE 	:= 4325376
+BOARD_SYSTEMIMAGE_PARTITION_SIZE 	:= 262144000
+BOARD_USERDATAIMAGE_PARTITION_SIZE 	:= 183631872
+BOARD_FLASH_BLOCK_SIZE 			:= 131072
 
 # Usb mouting
-BOARD_UMS_LUNFILE := "/sys/devices/platform/usb_mass_storage/lun0/file"
+BOARD_UMS_LUNFILE 		:= "/sys/devices/platform/usb_mass_storage/lun0/file"
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/file
 
 # FM radio support
-BOARD_HAVE_FM_RADIO := true
-BOARD_FM_DEVICE := bcm4325
+BOARD_HAVE_FM_RADIO 	:= true
+BOARD_FM_DEVICE 	:= bcm4325
 BOARD_GLOBAL_CFLAGS += -DHAVE_FM_RADIO
