@@ -69,8 +69,8 @@ BOARD_KERNEL_BASE 		:= 0x02E00000
 BOARD_KERNEL_PAGESIZE 		:= 2048
 
 # Enable network search
-# BOARD_PROVIDES_LIBRIL   := true (TODO: find out what this does)
 BOARD_USE_NEW_LIBRIL_HTC := true
+BOARD_USES_LEGACY_RIL := true
 
 ## Buzz graphics
 BOARD_NO_RGBX_8888 := true
