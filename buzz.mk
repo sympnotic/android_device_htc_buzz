@@ -50,7 +50,7 @@ PRODUCT_COPY_FILES += \
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/wifi/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
-    $(LOCAL_PATH)/prebuilt/wifi/bcm4329.ko:root/lib/modules/bcm4329.ko \
+    $(LOCAL_PATH)/prebuilt/wifi/modules:root/lib/modules \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
 # Media profile XML
