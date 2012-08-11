@@ -97,7 +97,7 @@ index 7f83d6f..75aa211 100644
 +        break;
 +    default:
 +        close(fb);
-+        LOGE("Failed to detect framebuffer bytespp");
++        ALOGE("Failed to detect framebuffer bytespp");
 +        return INVALID_OPERATION;
 +        break;
 +    }
@@ -204,7 +204,9 @@ index 3bd49d9..8fd808b 100644
 +                    uint32_t* width, uint32_t* height, PixelFormat* format,
 +                    uint32_t reqWidth, uint32_t reqHeight,
 +                    uint32_t minLayerZ, uint32_t maxLayerZ);
-+                    status_t directRenderScreenToTextureLocked(DisplayID dpy,
++
++           status_t directRenderScreenToTextureLocked(DisplayID dpy,
++                    GLuint* textureName, GLfloat* uOut, GLfloat* vOut);
 +
              status_t turnElectronBeamOffImplLocked(int32_t mode);
              status_t turnElectronBeamOnImplLocked(int32_t mode);
