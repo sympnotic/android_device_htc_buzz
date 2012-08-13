@@ -1,12 +1,11 @@
 #!/bin/sh
-echo "removing old patches"
+echo "removing old patches..."
 rm ../../../../bionic/*.patch
 rm ../../../../frameworks/native/*.patch
 rm ../../../../frameworks/av/*.patch
 rm ../../../../hardware/ril/*.patch
 echo
-
-echo "Copying files"
+echo "Copying files..."
 cp android_bionic* ../../../../bionic/
 cp frameworks_native* ../../../../frameworks/native/
 cp frameworks_av* ../../../../frameworks/av/
@@ -34,5 +33,6 @@ echo
 echo "cd hardware/ril"
 cd ../../hardware/ril/
 echo "apply patch"
-git am *.patchrm 
+git am *.patch
 echo
+cd ../../
