@@ -51,6 +51,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/wifi/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
     $(LOCAL_PATH)/prebuilt/wifi/modules:root/lib/modules \
+    $(LOCAL_PATH)/prebuilt/wifi/modules/bcm4329.ko:root/lib/modules/bcm4329.ko \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
 # Media profile XML
