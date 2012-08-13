@@ -68,9 +68,11 @@ BOARD_KERNEL_CMDLINE 		:= no_console_suspend=1 console=null
 BOARD_KERNEL_BASE 		:= 0x02E00000
 BOARD_KERNEL_PAGESIZE 		:= 2048
 
-# Enable network search
-BOARD_USE_NEW_LIBRIL_HTC := true
+# Enable gsm and network search
+COMMON_GLOBAL_CFLAGS += -DFORCE_RILD_AS_ROOT # Not sure if this is needed
+BOARD_FORCE_RILD_AS_ROOT := true
 BOARD_USES_LEGACY_RIL := true
+BOARD_USE_NEW_LIBRIL_HTC := true
 
 ## Buzz graphics
 BOARD_NO_RGBX_8888 := true

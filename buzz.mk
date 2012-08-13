@@ -69,6 +69,10 @@ PRODUCT_PACKAGES += \
     audio_policy.buzz \
     audio.a2dp.default
 
+# Gsm
+PRODUCT_PACKAGES += \
+    rild
+
 # Misc
 PRODUCT_PACKAGES += \
     librs_jni \
