@@ -199,7 +199,7 @@ index a0f7775..d04d858 100644
 +    const char* fbpath = "/dev/graphics/fb0";
 +
 +    // only one display supported for now
-+    if (UNLIKELY(uint32_t(dpy) >= DISPLAY_COUNT))
++    if (CC_UNLIKELY(uint32_t(dpy) >= DISPLAY_COUNT))
 +        return BAD_VALUE;
 +
 +    // get screen geometry
