@@ -5,6 +5,8 @@ on early-init
     mkdir /mnt/sdcard 0000 system system
     # for backwards compatibility
     symlink /mnt/sdcard /sdcard
+    # load bcm4329 module
+    insmod /system/lib/modules/bcm4329.ko
 
 on post-fs-data
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -95,7 +97,7 @@ on fs
     setprop ro.bt.bdaddr_path /sys/module/board_buzz/parameters/bdaddr
 
 service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
-    -Dwext -iwlan0 -c/data/misc/wifi/wpa_supplicant.conf
+    -Dwext -iwlan0 -dd -c/system/etc/wifi/wpa_supplicant.conf
 #   we will start as root and wpa_supplicant will switch to user wifi
 #   after setting up the capabilities required for WEXT
 #   user wifi

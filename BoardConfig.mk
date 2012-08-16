@@ -46,12 +46,11 @@ TARGET_BOARD_INFO_FILE := device/htc/buzz/board-info.txt
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER      := WEXT
-BOARD_WEXT_NO_COMBO_SCAN         := true # TODO: find out what this does
 WPA_SUPPLICANT_VERSION           := VER_0_8_X
 BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_wext
 BOARD_WLAN_DEVICE                := bcm4329
 WIFI_BAND                        := 802_11_ABG
-WIFI_DRIVER_MODULE_PATH          := "system/lib/modules/bcm4329.ko"
+WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/bcm4329.ko"
 WIFI_DRIVER_FW_PATH_STA          := "/vendor/firmware/fw_bcm4329.bin"
 WIFI_DRIVER_FW_PATH_AP           := "/vendor/firmware/fw_bcm4329_apsta.bin"
 WIFI_DRIVER_MODULE_ARG           := "iface_name=wlan0 firmware_path=/vendor/firmware/fw_bcm4329.bin nvram_path=/proc/calibration"
@@ -59,7 +58,7 @@ WIFI_DRIVER_MODULE_NAME          := "bcm4329"
 
 
 ## kernel
-# TARGET_KERNEL_CONFIG   		:= buzz_defconfig
+TARGET_KERNEL_CONFIG   		:= buzz_defconfig
 TARGET_PREBUILT_KERNEL 		:= device/htc/buzz/prebuilt/kernel
 TARGET_RECOVERY_INITRC 		:= device/htc/buzz/initramfs/init.recovery.rc
 TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
