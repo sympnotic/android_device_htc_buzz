@@ -58,7 +58,7 @@ WIFI_DRIVER_MODULE_NAME          := "bcm4329"
 
 
 # kernel
-# TARGET_KERNEL_CONFIG := buzz_defconfig
+TARGET_KERNEL_CONFIG := buzz_defconfig
 TARGET_PREBUILT_KERNEL := device/htc/buzz/prebuilt/kernel
 TARGET_RECOVERY_INITRC := device/htc/buzz/initramfs/init.recovery.rc
 TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
