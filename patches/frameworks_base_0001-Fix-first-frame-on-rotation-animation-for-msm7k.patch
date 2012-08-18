@@ -1,4 +1,4 @@
-From 8ee25255626b2a0f01192a941a0967e3b5a2b76a Mon Sep 17 00:00:00 2001
+From 6740f7b6fde099e8436841cf9a2ee42c16f3e516 Mon Sep 17 00:00:00 2001
 From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
 Date: Sat, 18 Aug 2012 10:56:59 +0200
 Subject: [PATCH] Fix first frame on rotation animation for msm7k
@@ -14,7 +14,7 @@ Change-Id: I628c0ffb36bd822d46d4bb039cd741f6d4fae88a
  1 file changed, 35 insertions(+), 4 deletions(-)
 
 diff --git a/services/java/com/android/server/wm/ScreenRotationAnimation.java b/services/java/com/android/server/wm/ScreenRotationAnimation.java
-index 7e3261b..5cc2563 100644
+index 7e3261b..33f4380 100644
 --- a/services/java/com/android/server/wm/ScreenRotationAnimation.java
 +++ b/services/java/com/android/server/wm/ScreenRotationAnimation.java
 @@ -188,7 +188,9 @@ class ScreenRotationAnimation {
@@ -34,12 +34,12 @@ index 7e3261b..5cc2563 100644
 -                    mSurface = new SurfaceTrace(session, 0, "FreezeSurface", -1, mWidth, mHeight,
 -                        PixelFormat.OPAQUE, Surface.FX_SURFACE_SCREENSHOT | Surface.HIDDEN);
 +                    mSurface = new SurfaceTrace(session, 0, "FreezeSurface", 
-+                        -1, mWidth, mHeight, PixelFormat.OPAQUE, isTegra ? 0 : (Surface.FX_SURFACE_SCREENSHOT | Surface.HIDDEN));
++                        -1, mWidth, mHeight, PixelFormat.OPAQUE, isMsm7k ? 0 : (Surface.FX_SURFACE_SCREENSHOT | Surface.HIDDEN));
                  } else {
 -                    mSurface = new Surface(session, 0, "FreezeSurface", -1, mWidth, mHeight,
 -                        PixelFormat.OPAQUE, Surface.FX_SURFACE_SCREENSHOT | Surface.HIDDEN);
 +                    mSurface = new Surface(session, 0, "FreezeSurface", 
-+                        -1, mWidth, mHeight, PixelFormat.OPAQUE, isTegra ? 0 : (Surface.FX_SURFACE_SCREENSHOT | Surface.HIDDEN));
++                        -1, mWidth, mHeight, PixelFormat.OPAQUE, isMsm7k ? 0 : (Surface.FX_SURFACE_SCREENSHOT | Surface.HIDDEN));
                  }
                  if (!mSurface.isValid()) {
                      // Screenshot failed, punt.
