@@ -117,3 +117,8 @@ media.stagefright.enable-http=false
 #fix recording
 media.stagefright.enable-record=true
 
+
+#OTA update center
+otaupdater.otaid=cm-9_UNOFFICIAL_buzz
+otaupdater.otatime=20120818-1121
+otaupdater.otaver=2012.08.18
