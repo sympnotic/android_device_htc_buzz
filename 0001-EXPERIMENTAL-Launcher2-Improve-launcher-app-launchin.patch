@@ -1,0 +1,151 @@
+From 2ed0277ea51a662efc8c8c40bc855103353b0c99 Mon Sep 17 00:00:00 2001
+From: Liam Mark <lmark@codeaurora.org>
+Date: Thu, 17 May 2012 10:14:41 -0700
+Subject: [PATCH] EXPERIMENTAL: Launcher2: Improve launcher app launching
+ performance
+
+To improve performance change the default behavior
+of the launcher so that after onclick it immediately
+launches the app instead of waiting for the icon animation
+to finish. Also to improve performance simplify the icon
+animation and start the animation on pointer down.
+
+To change the default behavior back to its original
+behavior set the POST_CLICK_ANIMATE
+compile-time option to true.
+
+CRs-Fixed: 373773
+(cherry picked from commit ab0f2a1b9a814036dd2bea6f6674af58759c77f5)
+
+Change-Id: I1bc19ed7c817f464e4f2925f8f2dd4f8cd04b8b8
+---
+ .../trebuchet/AppsCustomizePagedView.java          |   21 +++++++++-----
+ src/com/cyanogenmod/trebuchet/PagedView.java       |   17 +++++++++++
+ src/com/cyanogenmod/trebuchet/PagedViewIcon.java   |   30 ++++++++++++++++++++
+ 3 files changed, 61 insertions(+), 7 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java b/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java
+index a31bf40..82df008 100644
+--- a/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java
++++ b/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java
+@@ -580,14 +580,21 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
+                 mLauncher.getWorkspace().isSwitchingState()) return;
+ 
+         if (v instanceof PagedViewIcon) {
+-            // Animate some feedback to the click
+             final ApplicationInfo appInfo = (ApplicationInfo) v.getTag();
+-            animateClickFeedback(v, new Runnable() {
+-                @Override
+-                public void run() {
+-                    mLauncher.startActivitySafely(appInfo.intent, appInfo);
+-                }
+-            });
++
++            if (!PagedViewIcon.POST_CLICK_ANIMATE) {
++                // Display some feedback to the click
++                displayClickFeedback(v);
++                mLauncher.startActivitySafely(appInfo.intent, appInfo);
++            } else {
++                // Animate some feedback to the click
++                animateClickFeedback(v, new Runnable() {
++                      @Override
++                      public void run() {
++                          mLauncher.startActivitySafely(appInfo.intent, appInfo);
++                     }
++                });
++            }
+         } else if (v instanceof PagedViewWidget) {
+             // Let the user know that they have to long press to add a widget
+             Toast.makeText(getContext(), R.string.long_press_widget_to_add,
+diff --git a/src/com/cyanogenmod/trebuchet/PagedView.java b/src/com/cyanogenmod/trebuchet/PagedView.java
+index 6fd2657..5562392 100644
+--- a/src/com/cyanogenmod/trebuchet/PagedView.java
++++ b/src/com/cyanogenmod/trebuchet/PagedView.java
+@@ -974,6 +974,18 @@ public abstract class PagedView extends ViewGroup {
+         return mTouchState != TOUCH_STATE_REST;
+     }
+ 
++    class AlphaResetRunnable implements Runnable {
++        View mView;
++
++        AlphaResetRunnable(View v) {
++            mView = v;
++        }
++
++        public void run() {
++            mView.setAlpha(1.0f);
++        }
++    }
++
+     protected void animateClickFeedback(View v, final Runnable r) {
+         // animate the view slightly to show click feedback running some logic after it is "pressed"
+         ObjectAnimator anim = (ObjectAnimator) AnimatorInflater.
+@@ -987,6 +999,11 @@ public abstract class PagedView extends ViewGroup {
+         anim.start();
+     }
+ 
++    protected void displayClickFeedback(View v) {
++        v.setAlpha(0.5f);
++        v.postDelayed((Runnable)(new AlphaResetRunnable(v)), 350);
++    }
++
+     protected void determineScrollingStart(MotionEvent ev) {
+         determineScrollingStart(ev, 1.0f);
+     }
+diff --git a/src/com/cyanogenmod/trebuchet/PagedViewIcon.java b/src/com/cyanogenmod/trebuchet/PagedViewIcon.java
+index 0f16ed4..8adaf33 100644
+--- a/src/com/cyanogenmod/trebuchet/PagedViewIcon.java
++++ b/src/com/cyanogenmod/trebuchet/PagedViewIcon.java
+@@ -26,12 +26,22 @@ import android.util.AttributeSet;
+ import android.widget.Checkable;
+ import android.widget.TextView;
+ 
++import android.view.MotionEvent;
++import android.view.View;
++
+ 
+ /**
+  * An icon on a PagedView, specifically for items in the launcher's paged view (with compound
+  * drawables on the top).
+  */
+ public class PagedViewIcon extends TextView implements Checkable {
++
++    // POST_CLICK_ANIMATE determines whether the fading of the icon is animated after the click.
++    // If set to false the icon will not be animated and instead will be faded when the user
++    // touches the icon.  The benefit of not fading the icon after the click is that the app
++    // can immediately be launched when the click happens and therefore reduce the app
++    // launch latency.
++    static public final boolean POST_CLICK_ANIMATE = false;
+     private static final String TAG = "PagedViewIcon";
+ 
+     // holographic outline
+@@ -146,6 +156,26 @@ public class PagedViewIcon extends TextView implements Checkable {
+     }
+ 
+     @Override
++    public boolean onTouchEvent(MotionEvent event) {
++        boolean result = super.onTouchEvent(event);
++
++        switch (event.getAction()) {
++            case MotionEvent.ACTION_DOWN:
++                if (!POST_CLICK_ANIMATE) {
++                    setAlpha(0.5f);
++                }
++                break;
++            case MotionEvent.ACTION_CANCEL:
++            case MotionEvent.ACTION_UP:
++                if (!POST_CLICK_ANIMATE) {
++                    setAlpha(1.0f);
++                }
++                break;
++        }
++        return result;
++    }
++
++    @Override
+     public boolean isChecked() {
+         return mIsChecked;
+     }
+-- 
+1.7.9.5
+
