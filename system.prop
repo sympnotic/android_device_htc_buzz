@@ -68,7 +68,7 @@ persist.service.zram=1
 ro.compcache.default=18
 video.accelerate.hw=1
 persist.sys.use_16bpp_alpha=0
-persist.sys.use_dithering=1
+persist.sys.use_dithering=2
 
 # Increase SKIA decode memory capability for progressive jpg file.
 ro.media.dec.jpeg.memcap=20000000
