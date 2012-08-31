@@ -33,8 +33,6 @@ PRODUCT_BUILD_PROP_OVERRIDES += PRODUCT_NAME=nakasi BUILD_FINGERPRINT=google/nak
 # Release name and versioning
 PRODUCT_VERSION_DEVICE_SPECIFIC :=
 
-TARGET_BOOTANIMATION_NAME := vertical-240x320
-
 TARGET_NO_LIVEWALLPAPERS := true
 
 # RIL specific configuration

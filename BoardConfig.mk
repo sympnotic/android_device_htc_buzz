@@ -50,10 +50,10 @@ WPA_SUPPLICANT_VERSION           := VER_0_8_X
 BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_wext
 BOARD_WLAN_DEVICE                := bcm4329
 WIFI_BAND                        := 802_11_ABG
-WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/bcm4329.ko"
-WIFI_DRIVER_FW_STA_PATH   	 := "/vendor/firmware/fw_bcm4329_abg.bin"
-WIFI_DRIVER_FW_AP_PATH      	 := "/vendor/firmware/fw_bcm4329_apsta.bin"
-WIFI_DRIVER_MODULE_ARG           := "firmware_path=firmware_path=/vendor/firmware/fw_bcm4329_abg.bin nvram_path=/proc/calibration"
+WIFI_DRIVER_MODULE_PATH          := "/lib/modules/bcm4329.ko"
+WIFI_DRIVER_FW_PATH_STA          := "/vendor/firmware/fw_bcm4329.bin"
+WIFI_DRIVER_FW_PATH_AP           := "/vendor/firmware/fw_bcm4329_apsta.bin"
+WIFI_DRIVER_MODULE_ARG           := "iface_name=wlan0 firmware_path=/vendor/firmware/fw_bcm4329.bin nvram_path=/proc/calibration"
 WIFI_DRIVER_MODULE_NAME          := "bcm4329"
 
 
@@ -147,6 +147,10 @@ BOARD_FLASH_BLOCK_SIZE 			:= 131072
 # Usb mouting
 BOARD_UMS_LUNFILE 		:= "/sys/devices/platform/usb_mass_storage/lun0/file"
 TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/file
+
+# Boot animation
+TARGET_SCREEN_HEIGHT := 320
+TARGET_SCREEN_WIDTH := 240
 
 # FM radio support
 BOARD_HAVE_FM_RADIO 	:= true
