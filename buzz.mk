@@ -50,8 +50,9 @@ PRODUCT_COPY_FILES += \
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/wifi/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
-    $(LOCAL_PATH)/prebuilt/wifi/modules:system/lib/modules \
-    $(LOCAL_PATH)/prebuilt/wifi/modules/bcm4329.ko:system/lib/modules/bcm4329.ko \
+    $(LOCAL_PATH)/prebuilt/etc/dhcpcd/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf \
+    device/htc/buzz/nvram.txt:system/etc/wifi/nvram.txt \
+    device/htc/buzz/bcmdhd.cal:system/etc/wifi/bcmdhd.cal \
     hardware/broadcom/wlan/bcm4329/firmware/fw_bcm4329_abg.bin:system/vendor/firmware/fw_bcm4329_abg.bin \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
@@ -106,3 +107,6 @@ $(call inherit-product, device/common/gps/gps_eu_supl.mk)
 
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
+
+#Attempting to get wifi to work
+$(call inherit-product-if-exists, hardware/broadcom/wlan/bcm4329/Android.mk)
