@@ -50,10 +50,6 @@ PRODUCT_COPY_FILES += \
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/wifi/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
-    $(LOCAL_PATH)/prebuilt/etc/dhcpcd/dhcpcd.conf:system/etc/dhcpcd/dhcpcd.conf \
-    device/htc/buzz/nvram.txt:system/etc/wifi/nvram.txt \
-    device/htc/buzz/bcmdhd.cal:system/etc/wifi/bcmdhd.cal \
-    hardware/broadcom/wlan/bcm4329/firmware/fw_bcm4329_abg.bin:system/vendor/firmware/fw_bcm4329_abg.bin \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
 # Media profile XML
