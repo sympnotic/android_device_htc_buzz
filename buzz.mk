@@ -106,6 +106,3 @@ $(call inherit-product, device/common/gps/gps_eu_supl.mk)
 
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
-
-#Attempting to get wifi to work
-$(call inherit-product-if-exists, hardware/broadcom/wlan/bcm4329/Android.mk)
