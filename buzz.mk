@@ -56,6 +56,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/media_profiles.xml:/system/etc/media_profiles.xml
 
+# Audio_policy.conf
+PRODUCT_COPY_FILES += \
+    device/htc/buzz/prebuilt/audio_policy.conf:system/etc/audio_policy.conf
+
 # Module compiled for Buzz
 PRODUCT_PACKAGES += \
     lights.buzz \
@@ -65,7 +69,6 @@ PRODUCT_PACKAGES += \
     gps.buzz \
     camera.buzz \
     audio.primary.buzz \
-    audio_policy.buzz \
     audio.a2dp.default
 
 # Gsm
