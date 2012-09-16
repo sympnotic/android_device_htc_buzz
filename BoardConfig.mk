@@ -150,6 +150,7 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /sys/devices/platform/usb_mass_storage/lun0/f
 # Boot animation
 TARGET_SCREEN_HEIGHT := 320
 TARGET_SCREEN_WIDTH := 240
+TARGET_BOOTANIMATION_USE_RGB565 := true
 
 # FM radio support
 BOARD_HAVE_FM_RADIO 	:= true
