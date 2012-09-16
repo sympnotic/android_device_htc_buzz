@@ -106,3 +106,8 @@ $(call inherit-product, device/common/gps/gps_eu_supl.mk)
 
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
+
+# Interfaces
+PRODUCT_PROPERTY_OVERRIDES += \
+    wifi.interface=wlan0 \
+    wifi.supplicant_scan_interval=15
