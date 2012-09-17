@@ -49,7 +49,9 @@ PRODUCT_COPY_FILES += \
 
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/wifi/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
+    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
+    $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329.bin:system/etc/firmware/fw_bcm4329.bin \
+    $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329_apsta.bin:system/etc/firmware/fw_bcm4329_apsta.bin \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
 # Media profile XML
