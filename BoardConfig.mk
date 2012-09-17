@@ -104,9 +104,9 @@ BOARD_USES_ICS_LIBAUDIO  := true
 BOARD_USES_AUDIO_LEGACY  := false
 
 # GPS
-BOARD_NEEDS_SRC_LIBRPC := false
-BOARD_GPS_LIBRARIES    := libgps librpc
-BOARD_USES_GPSSHIM     := true
+BOARD_BUILDS_OWN_LIBRPC := true
+BOARD_GPS_LIBRARIES     := libgps librpc
+BOARD_USES_GPSSHIM      := true
 
 # bluetooth
 BOARD_HAVE_BLUETOOTH 	 := true

@@ -1,4 +1,4 @@
-From e3fd62eba598e5872ee54b922616fd7107e04b41 Mon Sep 17 00:00:00 2001
+From 53f663d91699fbb3b184a6b1a4f1f452d34ae62a Mon Sep 17 00:00:00 2001
 From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
 Date: Mon, 17 Sep 2012 08:11:33 +0200
 Subject: [PATCH] msm7k: allow librpc to build from the device folder
@@ -9,22 +9,22 @@ from the device tree" possible.
 
 Change-Id: I6ebc3355d59d5eca409053a053448d3ee1ea598b
 ---
- Android.mk |    2 ++
- 1 file changed, 2 insertions(+)
+ Android.mk |    4 ++++
+ 1 file changed, 4 insertions(+)
 
 diff --git a/Android.mk b/Android.mk
-index 49b4f38..fe83edf 100644
+index 49b4f38..1a1ef22 100644
 --- a/Android.mk
 +++ b/Android.mk
-@@ -15,6 +15,7 @@
- #
- 
- ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
-+ifeq ($(BOARD_NEEDS_SRC_LIBRPC),true)
- 
- common_msm_dirs := librpc dspcrashd
- msm7k_dirs := $(common_msm_dirs) boot
-@@ -30,3 +31,4 @@ else
+@@ -25,8 +25,12 @@ else
+   ifeq ($(filter msm8960 msm8660 msm7627a msm7x30,$(TARGET_BOARD_PLATFORM)),)
+      include $(call all-named-subdir-makefiles,$(common_msm_dirs))
+   else
++    ifeq ($(BOARD_NEEDS_SRC_LIBRPC),true)
++    else
+      include $(call all-named-subdir-makefiles,librpc)
++    endif
+   endif
  endif
  
  endif
