@@ -1,0 +1,29 @@
+From 2fb7bc5fe1204b616db8b602fe5f583c6ea4ed2e Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Tue, 18 Sep 2012 09:11:52 +0200
+Subject: [PATCH] libstagefright: fix build error
+
+Change-Id: I139cda21fcc3aac58216eaf827fb5310f37c9404
+---
+ media/libstagefright/Android.mk |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/media/libstagefright/Android.mk b/media/libstagefright/Android.mk
+index 239ef00..45f3894 100644
+--- a/media/libstagefright/Android.mk
++++ b/media/libstagefright/Android.mk
+@@ -69,10 +69,7 @@ LOCAL_SRC_FILES:=                         \
+         avc_utils.cpp                     \
+ 
+ ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
+-LOCAL_SRC_FILES+=                         \
+-        ExtendedExtractor.cpp             \
+-        ExtendedWriter.cpp                \
+-        TunnelPlayer.cpp
++LOCAL_SRC_FILES+=                         
+ 
+ ifeq ($(TARGET_BOARD_PLATFORM),msm8960)
+    LOCAL_SRC_FILES += LPAPlayerALSA.cpp
+-- 
+1.7.9.5
+
