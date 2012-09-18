@@ -114,4 +114,5 @@ $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
 PRODUCT_PROPERTY_OVERRIDES += \
     wifi.interface=wlan0 \
     wifi.supplicant_scan_interval=15 \
-    debug.mdpcomp.logs=0
+    debug.mdpcomp.logs=0 \
+    debug.enabletr=true
