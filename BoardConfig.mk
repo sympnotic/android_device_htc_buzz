@@ -61,7 +61,7 @@ WIFI_BAND                        := 802_11_ABG
 
 ## kernel
 TARGET_KERNEL_CONFIG   		:= buzz_defconfig
-TARGET_PREBUILT_KERNEL 		:= device/htc/buzz/prebuilt/kernel
+# TARGET_PREBUILT_KERNEL 		:= device/htc/buzz/prebuilt/kernel
 TARGET_RECOVERY_INITRC 		:= device/htc/buzz/initramfs/init.recovery.rc
 TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
 
@@ -104,9 +104,8 @@ BOARD_USES_ICS_LIBAUDIO  := true
 BOARD_USES_AUDIO_LEGACY  := false
 
 # GPS
-BOARD_NEEDS_SRC_LIBRPC := false
-BOARD_GPS_LIBRARIES    := libgps librpc
-BOARD_USES_GPSSHIM     := true
+BOARD_GPS_LIBRARIES := libgps librpc
+BOARD_USES_GPSSHIM  := true
 
 # bluetooth
 BOARD_HAVE_BLUETOOTH 	 := true
