@@ -1,0 +1,27 @@
+From aa4354058e29da3afe1c5d847ac97ba129ac521e Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Tue, 18 Sep 2012 08:44:37 +0200
+Subject: [PATCH] GraphicBufferAllocator: fix build
+
+Change-Id: Icfc59489d0aa9a736fac9995fbdbe8eb997ed097
+---
+ libs/ui/GraphicBufferAllocator.cpp |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/libs/ui/GraphicBufferAllocator.cpp b/libs/ui/GraphicBufferAllocator.cpp
+index d0de61f..5576c89 100644
+--- a/libs/ui/GraphicBufferAllocator.cpp
++++ b/libs/ui/GraphicBufferAllocator.cpp
+@@ -120,8 +120,7 @@ status_t GraphicBufferAllocator::alloc(uint32_t w, uint32_t h,
+ 
+ #ifdef QCOM_HARDWARE
+     if(bufferSize) {
+-        err = mAllocDev->allocSize(mAllocDev, w, h,
+-                               format, usage, handle, stride, bufferSize);
++        err = mAllocDev->alloc(mAllocDev, w, h, format, usage, handle, stride);
+     } else {
+ #endif
+         err = mAllocDev->alloc(mAllocDev, w, h, format, usage, handle, stride);
+-- 
+1.7.9.5
+
