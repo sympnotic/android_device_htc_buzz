@@ -80,8 +80,7 @@ PRODUCT_PACKAGES += \
 # Misc
 PRODUCT_PACKAGES += \
     librs_jni \
-    com.android.future.usb.accessory \
-    libtilerenderer
+    com.android.future.usb.accessory
 
 # Omx
 PRODUCT_PACKAGES += \
