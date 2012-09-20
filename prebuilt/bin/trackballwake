@@ -3,6 +3,8 @@
 # Trackball wake script for HTC Liberty running CM9 or CM10
 # onoff is backwards, so it can be directly echo'd into the idc file
 
+# Created by XDA-member WinSuk
+
 onoff="0"
 
 catfile=`grep device.internal /system/usr/idc/curcial-oj.idc`
