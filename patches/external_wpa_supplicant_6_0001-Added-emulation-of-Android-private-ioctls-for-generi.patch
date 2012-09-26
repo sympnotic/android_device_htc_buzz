@@ -1,0 +1,308 @@
+From 16e9f661494cdf222484fccfe59bb61d7d290fbc Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Wed, 26 Sep 2012 14:23:09 +0200
+Subject: [PATCH] Added emulation of Android private ioctls for generic WiFi
+ drivers.
+
+Original author: Nicu Pavel <npavel@mini-box.com>
+
+Change-Id: Id0db59f63d0dcaad9f3e4564217d191ec1e0e592
+https://gitorious.org/picopc-android-gingerbread/external-wpa_supplicant_6/commit/5f5c50d722eedaedd75c1698b79f464310ce6478?format=patch
+---
+ wpa_supplicant/Android.mk                |    6 +-
+ wpa_supplicant/src/drivers/driver_wext.c |  198 ++++++++++++++++++++++--------
+ wpa_supplicant/src/drivers/driver_wext.h |    2 +
+ 3 files changed, 151 insertions(+), 55 deletions(-)
+
+diff --git a/wpa_supplicant/Android.mk b/wpa_supplicant/Android.mk
+index f37b68b..dddf304 100644
+--- a/wpa_supplicant/Android.mk
++++ b/wpa_supplicant/Android.mk
+@@ -17,7 +17,8 @@
+ 
+ LOCAL_PATH := $(call my-dir)
+ 
+-WPA_BUILD_SUPPLICANT := false
++CONFIG_DRIVER_WEXT = y
++WPA_BUILD_SUPPLICANT := true
+ ifneq ($(BOARD_WPA_SUPPLICANT_DRIVER),)
+   WPA_BUILD_SUPPLICANT := true
+   CONFIG_DRIVER_$(BOARD_WPA_SUPPLICANT_DRIVER) = y
+@@ -46,7 +47,8 @@ L_CFLAGS += -DOPENSSL_NO_ENGINE
+ INCLUDES = $(LOCAL_PATH)
+ INCLUDES += $(LOCAL_PATH)/src
+ INCLUDES += $(LOCAL_PATH)/src/common
+-# INCLUDES += $(LOCAL_PATH)/src/crypto # To force proper includes
++#INCLUDES += $(LOCAL_PATH)/src/crypto  
++# To force proper includes
+ INCLUDES += $(LOCAL_PATH)/src/drivers
+ INCLUDES += $(LOCAL_PATH)/src/eap_common
+ INCLUDES += $(LOCAL_PATH)/src/eapol_supp
+diff --git a/wpa_supplicant/src/drivers/driver_wext.c b/wpa_supplicant/src/drivers/driver_wext.c
+index c4dd036..32ca0d8 100644
+--- a/wpa_supplicant/src/drivers/driver_wext.c
++++ b/wpa_supplicant/src/drivers/driver_wext.c
+@@ -241,6 +241,11 @@ int wpa_driver_wext_set_ssid(void *priv, const u8 *ssid, size_t ssid_len)
+ 	os_memset(buf, 0, sizeof(buf));
+ 	os_memcpy(buf, ssid, ssid_len);
+ 	iwr.u.essid.pointer = (caddr_t) buf;
++
++	os_memset(drv->ssid, 0, 32);
++	os_memcpy(drv->ssid, ssid, ssid_len);
++	drv->ssid_len = ssid_len;
++
+ 	if (drv->we_version_compiled < 21) {
+ 		/* For historic reasons, set SSID length to include one extra
+ 		 * character, C string nul termination, even though SSID is
+@@ -1260,7 +1265,12 @@ int wpa_driver_wext_combo_scan(void *priv, struct wpa_ssid **ssid_ptr,
+ 		else
+ 			ret = 0;	/* Hide error in case of bg scan */
+ 		*ssid_ptr = ssid_orig;
+-		/* goto old_scan; */
+++		/* Fall back to normal scan mode */
+++		if (*ssid_ptr) {
+++		    ssid_nm = (*ssid_ptr)->ssid;
+++		    ssid_len = (*ssid_ptr)->ssid_len;
+++		}
+++		return wpa_driver_wext_scan(priv, ssid_nm, ssid_len);
+ 	}
+ 
+ 	wpa_driver_wext_set_scan_timeout(priv);
+@@ -2673,35 +2683,58 @@ static int wpa_driver_set_backgroundscan_params(void *priv)
+ static int wpa_driver_priv_driver_cmd( void *priv, char *cmd, char *buf, size_t buf_len )
+ {
+ 	struct wpa_driver_wext_data *drv = priv;
+-	struct wpa_supplicant *wpa_s = (struct wpa_supplicant *)(drv->ctx);
+-	struct iwreq iwr;
+-	int ret = 0, flags;
++	int ret = -1;
+ 
+-	wpa_printf(MSG_DEBUG, "%s %s len = %d", __func__, cmd, buf_len);
++	wpa_printf(MSG_DEBUG, "%s %s", __func__, cmd);
+ 
+-	if (!drv->driver_is_started && (os_strcasecmp(cmd, "START") != 0)) {
+-		wpa_printf(MSG_ERROR,"WEXT: Driver not initialized yet");
+-		return -1;
++	if (os_strcasecmp(cmd, "start") == 0) {
++		wpa_printf(MSG_DEBUG,"Start command");
++		return (ret);
+ 	}
+ 
+-	if (os_strcasecmp(cmd, "RSSI-APPROX") == 0) {
+-		os_strncpy(cmd, "RSSI", MAX_DRV_CMD_SIZE);
+-	} else if( os_strncasecmp(cmd, "SCAN-CHANNELS", 13) == 0 ) {
+-		int no_of_chan;
++	if (os_strcasecmp(cmd, "stop") == 0) {
++		wpa_printf(MSG_DEBUG,"Stop command");
++	}
++	else if (os_strcasecmp(cmd, "macaddr") == 0) {
++		struct ifreq ifr;
++		os_memset(&ifr, 0, sizeof(ifr));
++		os_strncpy(ifr.ifr_name, drv->ifname, IFNAMSIZ);
+ 
+-		no_of_chan = atoi(cmd + 13);
+-		os_snprintf(cmd, MAX_DRV_CMD_SIZE, "COUNTRY %s",
+-			wpa_driver_get_country_code(no_of_chan));
+-	} else if (os_strcasecmp(cmd, "STOP") == 0) {
+-		if ((wpa_driver_wext_get_ifflags(drv, &flags) == 0) &&
+-		    (flags & IFF_UP)) {
+-			wpa_printf(MSG_ERROR, "WEXT: %s when iface is UP", cmd);
+-			wpa_driver_wext_set_ifflags(drv, flags & ~IFF_UP);
++		if (ioctl(drv->ioctl_sock, SIOCGIFHWADDR, &ifr) < 0) {
++			perror("ioctl[SIOCGIFHWADDR]");
++			ret = -1;
++		} else {
++			u8 *macaddr = (u8 *) ifr.ifr_hwaddr.sa_data;
++			ret = snprintf(buf, buf_len, "Macaddr = " MACSTR "\n",
++			               MAC2STR(macaddr));
+ 		}
+-	} else if( os_strcasecmp(cmd, "RELOAD") == 0 ) {
+-		wpa_printf(MSG_DEBUG,"Reload command");
+-		wpa_msg(drv->ctx, MSG_INFO, WPA_EVENT_DRIVER_STATE "HANGED");
+-		return ret;
++	}
++	else if (os_strcasecmp(cmd, "scan-passive") == 0) {
++		wpa_printf(MSG_DEBUG,"Scan Passive command");
++	}
++	else if (os_strcasecmp(cmd, "scan-active") == 0) {
++		wpa_printf(MSG_DEBUG,"Scan Active command");
++	}
++	else if (os_strcasecmp(cmd, "linkspeed") == 0) {
++		struct iwreq wrq;
++		unsigned int linkspeed;
++		os_strncpy(wrq.ifr_name, drv->ifname, IFNAMSIZ);
++		
++		if (ioctl(drv->ioctl_sock, SIOCGIWRATE, &wrq) < 0) {
++			perror("ioctl[SIOCGIWRATE]");
++			ret = -1;
++		} else {
++			linkspeed = wrq.u.bitrate.value / 1000000;
++			ret = snprintf(buf, buf_len, "LinkSpeed %d\n", linkspeed);
++			wpa_printf(MSG_DEBUG, "[REPLY]: %s", buf);
++		}
++	else if (os_strncasecmp(cmd, "scan-channels", 13) == 0) {
++	}
++	else if (os_strncasecmp(cmd, "rssi", 4) == 0) {
++		/* Matches both rssi and rssi-approx */
++		struct iwreq wrq;
++		struct iw_statistics stats;
++		signed int rssi;
+ 	} else if( os_strcasecmp(cmd, "BGSCAN-START") == 0 ) {
+ 		ret = wpa_driver_set_backgroundscan_params(priv);
+ 		if (ret < 0) {
+@@ -2714,11 +2747,10 @@ static int wpa_driver_priv_driver_cmd( void *priv, char *cmd, char *buf, size_t
+ 		drv->bgscan_enabled = 0;
+ 	}
+ 
+-	os_memset(&iwr, 0, sizeof(iwr));
+-	os_strncpy(iwr.ifr_name, drv->ifname, IFNAMSIZ);
+-	os_memcpy(buf, cmd, strlen(cmd) + 1);
+-	iwr.u.data.pointer = buf;
+-	iwr.u.data.length = buf_len;
++		wrq.u.data.pointer = (caddr_t) &stats;
++		wrq.u.data.length = sizeof(stats);
++		wrq.u.data.flags = 1; /* Clear updated flag */
++		strncpy(wrq.ifr_name, drv->ifname, IFNAMSIZ);
+ 
+ 	if( os_strncasecmp(cmd, "CSCAN", 5) == 0 ) {
+ 		if (!wpa_s->scanning && ((wpa_s->wpa_state <= WPA_SCANNING) ||
+@@ -2730,31 +2762,91 @@ static int wpa_driver_priv_driver_cmd( void *priv, char *cmd, char *buf, size_t
+ 		}
+ 	}
+ 
+-	ret = ioctl(drv->ioctl_sock, SIOCSIWPRIV, &iwr);
++		if (ioctl(drv->ioctl_sock, SIOCGIWSTATS, &wrq) < 0) {
++			perror("ioctl[SIOCGIWSTATS]");
++			ret = -1;
++		} else {
++			if (stats.qual.updated & IW_QUAL_DBM) {
++				/* Values in dBm, stored in u8 with range 63 : -192 */
++				rssi = ( stats.qual.level > 63 ) ?
++					stats.qual.level - 0x100 :
++					stats.qual.level;
++			} else {
++				rssi = stats.qual.level;
++			}
+ 
+-	if (ret < 0) {
+-		wpa_printf(MSG_ERROR, "%s failed (%d): %s", __func__, ret, cmd);
+-		drv->errors++;
+-		if (drv->errors > WEXT_NUMBER_SEQUENTIAL_ERRORS) {
+-			drv->errors = 0;
+-			wpa_msg(drv->ctx, MSG_INFO, WPA_EVENT_DRIVER_STATE "HANGED");
++			if (drv->ssid_len != 0 && drv->ssid_len < buf_len) {
++				os_memcpy((void *) buf, (void *) (drv->ssid),
++						drv->ssid_len );
++				ret = drv->ssid_len;
++				ret += snprintf(&buf[ret], buf_len-ret,
++						" rssi %d\n", rssi);
++				wpa_printf(MSG_DEBUG, "[REPLY]: %s", buf);
++				if (ret < (int)buf_len) {
++					return ret;
++				}
++			} else {
++			    ret = -1;
++			}
+ 		}
+-	} else {
+-		drv->errors = 0;
+-		ret = 0;
+-		if ((os_strcasecmp(cmd, "RSSI") == 0) ||
+-		    (os_strcasecmp(cmd, "LINKSPEED") == 0) ||
+-		    (os_strcasecmp(cmd, "MACADDR") == 0) ||
+-		    (os_strcasecmp(cmd, "GETPOWER") == 0) ||
+-		    (os_strcasecmp(cmd, "GETBAND") == 0)) {
+-			ret = strlen(buf);
+-		} else if (os_strcasecmp(cmd, "START") == 0) {
+-			drv->driver_is_started = TRUE;
+-			/* os_sleep(0, WPA_DRIVER_WEXT_WAIT_US);
+-			wpa_msg(drv->ctx, MSG_INFO, WPA_EVENT_DRIVER_STATE "STARTED"); */
+-		} else if (os_strcasecmp(cmd, "STOP") == 0) {
+-			drv->driver_is_started = FALSE;
+-			/* wpa_msg(drv->ctx, MSG_INFO, WPA_EVENT_DRIVER_STATE "STOPPED"); */
++	}
++	else if (os_strcasecmp(cmd, "btcoexscan-start") == 0) {
++	}
++	else if (os_strcasecmp(cmd, "btcoexscan-stop") == 0) {
++	}
++	else if (os_strcasecmp(cmd, "rxfilter-start") == 0) {
++		wpa_printf(MSG_DEBUG,"Rx Data Filter Start command");
++	}
++	else if (os_strcasecmp(cmd, "rxfilter-stop") == 0) {
++		wpa_printf(MSG_DEBUG,"Rx Data Filter Stop command");
++	}
++	else if (os_strcasecmp(cmd, "rxfilter-statistics") == 0) {
++	}
++	else if (os_strncasecmp(cmd, "rxfilter-add", 12) == 0 ) {
++	}
++	else if (os_strncasecmp(cmd, "rxfilter-remove",15) == 0) {
++	}
++	else if (os_strcasecmp(cmd, "snr") == 0) {
++		struct iwreq wrq;
++		struct iw_statistics stats;
++		int snr, rssi, noise;
++
++		wrq.u.data.pointer = (caddr_t) &stats;
++		wrq.u.data.length = sizeof(stats);
++		wrq.u.data.flags = 1; /* Clear updated flag */
++		strncpy(wrq.ifr_name, drv->ifname, IFNAMSIZ);
++
++		if (ioctl(drv->ioctl_sock, SIOCGIWSTATS, &wrq) < 0) {
++			perror("ioctl[SIOCGIWSTATS]");
++			ret = -1;
++		} else {
++		if (stats.qual.updated & IW_QUAL_DBM) {
++				/* Values in dBm, stored in u8 with range 63 : -192 */
++				rssi = ( stats.qual.level > 63 ) ?
++					stats.qual.level - 0x100 :
++					stats.qual.level;
++				noise = ( stats.qual.noise > 63 ) ?
++					stats.qual.noise - 0x100 :
++					stats.qual.noise;
++			} else {
++				rssi = stats.qual.level;
++				noise = stats.qual.noise;
++			}
++
++			snr = rssi - noise;
++
++			ret = snprintf(buf, buf_len, "snr = %u\n", (unsigned int)snr);
++			if (ret < (int)buf_len) {
++				return ret;
++			}
++		}
++	}
++	else if (os_strncasecmp(cmd, "btcoexmode", 10) == 0) {
++	}
++	else if( os_strcasecmp(cmd, "btcoexstat") == 0 ) {
++	}
++	else {
++		wpa_printf(MSG_DEBUG,"Unsupported command");
+ 		} else if (os_strncasecmp(cmd, "CSCAN", 5) == 0) {
+ 			wpa_driver_wext_set_scan_timeout(priv);
+ 			wpa_supplicant_notify_scanning(wpa_s, 1);
+@@ -2776,7 +2868,7 @@ const struct wpa_driver_ops wpa_driver_wext_ops = {
+ 	.set_countermeasures = wpa_driver_wext_set_countermeasures,
+ 	.set_drop_unencrypted = wpa_driver_wext_set_drop_unencrypted,
+ 	.scan = wpa_driver_wext_scan,
+-	.combo_scan = wpa_driver_wext_combo_scan,
++	/*.combo_scan = wpa_driver_wext_combo_scan,*/
+ 	.get_scan_results2 = wpa_driver_wext_get_scan_results,
+ 	.deauthenticate = wpa_driver_wext_deauthenticate,
+ 	.disassociate = wpa_driver_wext_disassociate,
+diff --git a/wpa_supplicant/src/drivers/driver_wext.h b/wpa_supplicant/src/drivers/driver_wext.h
+index b9f50ce..7546818 100644
+--- a/wpa_supplicant/src/drivers/driver_wext.h
++++ b/wpa_supplicant/src/drivers/driver_wext.h
+@@ -49,6 +49,8 @@ struct wpa_driver_wext_data {
+ 	int skip_disconnect;
+ 	int bgscan_enabled;
+ #endif
++	u8 ssid[32];
++	unsigned int ssid_len;
+ };
+ 
+ int wpa_driver_wext_get_ifflags(struct wpa_driver_wext_data *drv, int *flags);
+-- 
+1.7.9.5
+
