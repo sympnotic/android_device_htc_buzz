@@ -105,10 +105,6 @@ $(call inherit-product, device/common/gps/gps_eu_supl.mk)
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
 
-# OTA Update Center
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/prebuilt/apk/OTAUpdater.apk:system/app/OTAUpdater.apk
-
 # WinSuk's trackball wake script
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/bin/trackballwake:system/bin/trackballwake
