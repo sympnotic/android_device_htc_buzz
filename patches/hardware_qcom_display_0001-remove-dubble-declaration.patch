@@ -1,0 +1,38 @@
+From 3d684c7efe1017eae231ab0182d41a6c87128ea9 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 11 Aug 2012 15:16:52 +0200
+Subject: [PATCH] Gralloc: fix build
+
+Got this error:
+
+    hardware/qcom/display/libgralloc/gralloc_priv.h:98:56: error: conflicting declaration 'GRALLOC_MODULE_PERFORM_CREATE_HANDLE_FROM_B
+    device/htc/buzz/include/hardware/gralloc.h:108:5: error: 'GRALLOC_MODULE_PERFORM_CREATE_HANDLE_FROM_BUFFER' has a previous declara
+
+So I removed the declaration of GRALLOC_MODULE_PERFORM_CREATE_HANDLE_FROM_BUFFER as the declaration was identical.
+Removal of the declaration in the device repo results in build errors.
+
+Change-Id: If4e2b0b933f00c36769418e0a2da22aa6f077a95
+---
+ libgralloc/gralloc_priv.h |    6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/libgralloc/gralloc_priv.h b/libgralloc/gralloc_priv.h
+index 7cdaa5f..c0a3504 100644
+--- a/libgralloc/gralloc_priv.h
++++ b/libgralloc/gralloc_priv.h
+@@ -92,12 +92,6 @@ enum {
+     GRALLOC_USAGE_PRIVATE_CP_BUFFER       =       0x00080000,
+ };
+ 
+-enum {
+-    /* Gralloc perform enums
+-    */
+-    GRALLOC_MODULE_PERFORM_CREATE_HANDLE_FROM_BUFFER = 0x080000001,
+-};
+-
+ 
+ #define INTERLACE_MASK 0x80
+ #define S3D_FORMAT_MASK 0xFF000
+-- 
+1.7.9.5
+
