@@ -113,5 +113,6 @@ $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
 
 # Interfaces
 PRODUCT_PROPERTY_OVERRIDES += \
+    mobiledata.interfaces=rmnet0,rmnet1,rmnet2,gprs,ppp0 \
     wifi.interface=wlan0 \
     wifi.supplicant_scan_interval=15
