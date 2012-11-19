@@ -27,15 +27,6 @@ ro.ril.update.acoustic.table=1
 # Modify MMS APN retry timer from 5s to 2s.
 ro.gsm.2nd_data_retry_config=max_retries=3, 2000, 2000, 2000
 
-# Time between scans in seconds. Keep it high to minimize battery drain.
-# This only affects the case in which there are remembered access points,
-# but none are in range.
-wifi.interface=wlan0
-wifi.supplicant_scan_interval=60
-
-# Mobile data interfaces
-mobiledata.interfaces=rmnet0,rmnet1,rmnet2
-
 # Allow or deny tethering.
 ro.tether.denied=false
 
