@@ -1,0 +1,50 @@
+From e24cdf16863950b7fd90d41ad3804ab5b9426981 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sun, 23 Dec 2012 11:55:49 +0100
+Subject: [PATCH] bcm4329: possible fix for wifi
+
+Change-Id: I0328c63b620c62dfc52f875acd67001170083707
+---
+ bcm4329/config/Android.mk |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
+
+diff --git a/bcm4329/config/Android.mk b/bcm4329/config/Android.mk
+index 60ee9ff..f3b7a60 100644
+--- a/bcm4329/config/Android.mk
++++ b/bcm4329/config/Android.mk
+@@ -18,14 +18,29 @@ LOCAL_PATH := $(call my-dir)
+ ########################
+ 
+ include $(CLEAR_VARS)
+-LOCAL_MODULE := dhcpcd.conf
++LOCAL_MODULE := fw_bcm4329.bin 
+ LOCAL_MODULE_CLASS := ETC
+-LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/dhcpcd
+-LOCAL_SRC_FILES := android_dhcpcd.conf
++#LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/firmware
++LOCAL_MODULE_PATH := $(TARGET_OUT)/vendor/firmware
++ifeq ($(strip $(WIFI_BAND)),802_11_ABG)
++LOCAL_SRC_FILES := fw_bcm4329_abg.bin
++else
++LOCAL_SRC_FILES := $(LOCAL_MODULE)
++endif
+ include $(BUILD_PREBUILT)
+ 
+ #########################
+ 
++include $(CLEAR_VARS)
++LOCAL_MODULE := fw_bcm4329_apsta.bin
++LOCAL_MODULE_CLASS := ETC
++#LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/firmware
++LOCAL_MODULE_PATH := $(TARGET_OUT)/vendor/firmware
++LOCAL_SRC_FILES := $(LOCAL_MODULE)
++ include $(BUILD_PREBUILT)
++
++#########################
++
+ WIFI_DRIVER_SOCKET_IFACE := wlan0
+ ifeq ($(strip $(WPA_SUPPLICANT_VERSION)),VER_0_8_X)
+   include external/wpa_supplicant_8/wpa_supplicant/wpa_supplicant_conf.mk
+-- 
+1.7.9.5
+
