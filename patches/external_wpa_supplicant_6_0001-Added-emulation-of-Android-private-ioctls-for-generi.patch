@@ -33,7 +33,7 @@ index f37b68b..dddf304 100644
  INCLUDES += $(LOCAL_PATH)/src
  INCLUDES += $(LOCAL_PATH)/src/common
 -# INCLUDES += $(LOCAL_PATH)/src/crypto # To force proper includes
-+#INCLUDES += $(LOCAL_PATH)/src/crypto  
++#INCLUDES += $(LOCAL_PATH)/src/crypto
 +# To force proper includes
  INCLUDES += $(LOCAL_PATH)/src/drivers
  INCLUDES += $(LOCAL_PATH)/src/eap_common
