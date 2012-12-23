@@ -8,17 +8,17 @@ rm ../../../../external/wpa_supplicant_6/*.patch
 
 echo
 echo "Copying files..."
-cp frameworks_native* ../../../../frameworks/native/
+#cp frameworks_native* ../../../../frameworks/native/
 cp hardware_ril* ../../../../hardware/ril/
 cp hardware_qcom_display* ../../../../hardware/qcom/display/
 cp hardware_broadcom_wlan* ../../../../hardware/broadcom/wlan/
 cp external_wpa_supplicant_6* ../../../../external/wpa_supplicant_6/
 echo
 
-echo "cd frameworks/native"
+echo "framework patches are disabled"
 cd ../../../../frameworks/native/
-echo "apply patch"
-git am *.patch
+#echo "apply patch"
+#git am *.patch
 echo
 
 echo "cd hardware/ril"
