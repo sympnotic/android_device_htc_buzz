@@ -32,6 +32,7 @@ TARGET_SPECIFIC_HEADER_PATH := device/htc/buzz/include
 
 # ARMv6-compatible processor rev 5 (v6l)
 TARGET_BOARD_PLATFORM := msm7k
+TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv6j
 TARGET_CPU_ABI := armeabi-v6j
 TARGET_CPU_ABI2 := armeabi
