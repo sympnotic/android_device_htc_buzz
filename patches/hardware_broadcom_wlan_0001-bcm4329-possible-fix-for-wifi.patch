@@ -18,7 +18,7 @@ index 6f96d82..b2d00d3 100644
  include $(CLEAR_VARS)
 -LOCAL_MODULE := dhcpcd.conf
 -LOCAL_MODULE_TAGS := user
-+LOCAL_MODULE := fw_bcm4329.bin 
++LOCAL_MODULE := fw_bcm4329.bin
  LOCAL_MODULE_CLASS := ETC
 -LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/dhcpcd
 -LOCAL_SRC_FILES := android_dhcpcd.conf
