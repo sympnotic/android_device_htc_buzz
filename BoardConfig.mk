@@ -59,7 +59,7 @@ WIFI_DRIVER_MODULE_NAME          := "bcm4329"
 
 # kernel
 TARGET_KERNEL_CONFIG := buzz_defconfig
-TARGET_PREBUILT_KERNEL := device/htc/buzz/prebuilt/kernel
+#TARGET_PREBUILT_KERNEL := device/htc/buzz/prebuilt/kernel
 TARGET_RECOVERY_INITRC := device/htc/buzz/initramfs/init.recovery.rc
 TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
 
@@ -89,6 +89,12 @@ TARGET_USES_C2D_COMPOSITION := false
 TARGET_HAVE_BYPASS := true
 
 ## Qualcomm
+#Omx Codec
+USES_NAM := true
+ifdef USES_NAM
+    COMMON_GLOBAL_CFLAGS += -DUSES_NAM
+endif
+
 # camera
 BOARD_CAMERA_USE_GETBUFFERINFO := true
 COMMON_GLOBAL_CFLAGS += -DNO_RGBX_8888 -DBINDER_COMPAT
