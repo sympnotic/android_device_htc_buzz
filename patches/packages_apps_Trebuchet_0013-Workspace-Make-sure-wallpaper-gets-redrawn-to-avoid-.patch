@@ -1,0 +1,28 @@
+From 5b4f6fe888905c2c8d5ecfb4cd8ee179cc169ae4 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 23:17:28 +0100
+Subject: [PATCH] Workspace: Make sure wallpaper gets redrawn to avoid ghost
+ wallpapers http://review.cyanogenmod.org/#/c/27624/
+
+Change-Id: I9dd52f86afc51598c7e6ca8f220b76c2e97bc19b
+---
+ src/com/cyanogenmod/trebuchet/Workspace.java |    3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index 89533d4..c769cd9 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -545,6 +545,9 @@ public class Workspace extends PagedView
+             }
+         }
+         mLauncher.setWallpaperVisibility(mWallpaperBitmap == null);
++
++        // Make sure wallpaper gets redrawn to avoid ghost wallpapers
++	invalidate();
+      }
+ 
+     @Override
+-- 
+1.7.9.5
+

@@ -1,0 +1,29 @@
+From 2785699db77c2878b657732f7bcbdcc98e58861b Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 21:12:45 +0100
+Subject: [PATCH] Trebuchet: Fix NPE when rotating
+ http://review.cyanogenmod.org/#/c/22535/
+
+Change-Id: If3139fc7cf283d68dede1238171e2f5aef5fe12f
+---
+ src/com/cyanogenmod/trebuchet/DragLayer.java |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/DragLayer.java b/src/com/cyanogenmod/trebuchet/DragLayer.java
+index 602bbef..9e97c8c 100644
+--- a/src/com/cyanogenmod/trebuchet/DragLayer.java
++++ b/src/com/cyanogenmod/trebuchet/DragLayer.java
+@@ -153,8 +153,8 @@ public class DragLayer extends FrameLayout {
+ 
+     @Override
+     public boolean onInterceptHoverEvent(MotionEvent ev) {
+-        Folder currentFolder = mLauncher.getWorkspace().getOpenFolder();
+-        if (currentFolder == null) {
++        Folder currentFolder;
++        if (mLauncher.getWorkspace()==null || (currentFolder = mLauncher.getWorkspace().getOpenFolder())==null) {
+             return false;
+         } else {
+             if (AccessibilityManager.getInstance(mContext).isTouchExplorationEnabled()) {
+-- 
+1.7.9.5
+

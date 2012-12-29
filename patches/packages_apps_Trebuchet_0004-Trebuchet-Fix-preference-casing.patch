@@ -1,0 +1,32 @@
+From 550b3068dab2397ede2739d764cb1e4c15b8be6c Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 21:28:41 +0100
+Subject: [PATCH] Trebuchet: Fix preference casing
+ http://review.cyanogenmod.org/#/c/24276/
+
+Change-Id: Ifed11e9a6a17e29eb044c91a7fb11e5dd49c39ef
+---
+ res/values/strings.xml |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 64feba6..7da88c9 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -291,11 +291,11 @@ s -->
+     <string name="preferences_interface_homescreen_general_screens_summary">Number of screens on the homescreen</string>
+     <string name="preferences_interface_homescreen_general_default_screen_title">Default screen</string>
+     <string name="preferences_interface_homescreen_general_default_screen_summary">Choose the default homescreen</string>
+-    <string name="preferences_interface_homescreen_general_grid_title">Grid Size</string>
++    <string name="preferences_interface_homescreen_general_grid_title">Grid size</string>
+     <string name="preferences_interface_homescreen_general_grid_summary">Choose the number of rows/columns on the homescreen</string>
+     <string name="preferences_interface_homescreen_general_grid_rows_title">Rows</string>
+     <string name="preferences_interface_homescreen_general_grid_columns_title">Columns</string>
+-    <string name="preferences_interface_homescreen_general_screen_padding_vertical_title">Vertical Padding</string>
++    <string name="preferences_interface_homescreen_general_screen_padding_vertical_title">Vertical padding</string>
+     <string name="preferences_interface_homescreen_general_screen_padding_vertical_summary">Extra vertical spacing on the homescreen</string>
+     <string name="preferences_interface_homescreen_general_screen_padding_horizontal_title">Horizontal Padding</string>
+     <string name="preferences_interface_homescreen_general_screen_padding_horizontal_summary">Extra horizontal spacing on the homescreen</string>
+-- 
+1.7.9.5
+

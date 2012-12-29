@@ -1,0 +1,55 @@
+From f203091d2e1a3e943d6d3d5fb1b57b3318ccf752 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 21:26:31 +0100
+Subject: [PATCH] Trebuchet: Only mark preferences changed when they actually
+ are http://review.cyanogenmod.org/#/c/24032/
+
+Change-Id: I28693038a8a8608a3786163b6b17ff068a92e2ad
+---
+ .../trebuchet/preference/Preferences.java          |   25 ++++++++++++++++----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/preference/Preferences.java b/src/com/cyanogenmod/trebuchet/preference/Preferences.java
+index 6952b39..6fe9a12 100644
+--- a/src/com/cyanogenmod/trebuchet/preference/Preferences.java
++++ b/src/com/cyanogenmod/trebuchet/preference/Preferences.java
+@@ -36,11 +36,8 @@ public class Preferences extends PreferenceActivity {
+         super.onCreate(savedInstanceState);
+         addPreferencesFromResource(R.xml.preferences);
+ 
+-        SharedPreferences prefs =
+-            getSharedPreferences(PreferencesProvider.PREFERENCES_KEY, Context.MODE_PRIVATE);
+-        SharedPreferences.Editor editor = prefs.edit();
+-                editor.putBoolean(PreferencesProvider.PREFERENCES_CHANGED, true);
+-                editor.commit();
++        mPrefs = getSharedPreferences(PreferencesProvider.PREFERENCES_KEY,
++                 Context.MODE_PRIVATE);
+ 
+         // Remove some preferences on large screens
+         if (LauncherApplication.isScreenLarge()) {
+@@ -57,4 +54,22 @@ public class Preferences extends PreferenceActivity {
+         Preference version = findPreference("application_version");
+         version.setTitle(getString(R.string.application_name));
+     }
++    @Override
++    protected void onResume() {
++        super.onResume();
++        mPrefs.registerOnSharedPreferenceChangeListener(this);
++    }
++
++    @Override
++    protected void onPause() {
++        mPrefs.unregisterOnSharedPreferenceChangeListener(this);
++        super.onPause();
++    }
++
++    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
++        SharedPreferences.Editor editor = mPrefs.edit();
++        editor.putBoolean(PreferencesProvider.PREFERENCES_CHANGED, true);
++        editor.commit();
++    }
++
+ }
+-- 
+1.7.9.5
+

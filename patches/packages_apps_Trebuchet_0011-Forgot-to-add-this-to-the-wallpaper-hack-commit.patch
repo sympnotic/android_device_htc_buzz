@@ -1,0 +1,85 @@
+From 82705fdce6de9645ee66806f2f9b94c298583135 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 23:11:53 +0100
+Subject: [PATCH] Forgot to add this to the wallpaper hack commit
+
+Change-Id: Idee788e7a58b9627004ba0a8915631199af5bfec
+---
+ res/layout-port/launcher.xml |   24 +++++++++++-------------
+ res/values/strings.xml       |    2 ++
+ res/xml/preferences.xml      |    4 ++++
+ 3 files changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/res/layout-port/launcher.xml b/res/layout-port/launcher.xml
+index fd3a843..271d959 100644
+--- a/res/layout-port/launcher.xml
++++ b/res/layout-port/launcher.xml
+@@ -22,8 +22,17 @@
+     android:layout_width="match_parent"
+     android:layout_height="match_parent">
+ 
+-    <!-- Keep these behind the workspace so that they are not visible when
+-         we go into AllApps -->
++    <!-- The workspace contains 5 screens of cells -->
++    <com.cyanogenmod.trebuchet.Workspace
++        android:id="@+id/workspace"
++        android:layout_width="match_parent"
++        android:layout_height="match_parent"
++        android:paddingTop="@dimen/qsb_bar_height_inset"
++        android:paddingBottom="@dimen/button_bar_height"
++        launcher:pageSpacing="@dimen/workspace_page_spacing"
++        launcher:scrollIndicatorPaddingLeft="@dimen/workspace_divider_padding_left"
++        launcher:scrollIndicatorPaddingRight="@dimen/workspace_divider_padding_right" />
++
+     <include
+         android:id="@+id/dock_divider"
+         layout="@layout/workspace_divider"
+@@ -39,17 +48,6 @@
+         android:layout_gravity="bottom"
+         android:layout_marginBottom="@dimen/button_bar_height" />
+ 
+-    <!-- The workspace contains 5 screens of cells -->
+-    <com.cyanogenmod.trebuchet.Workspace
+-        android:id="@+id/workspace"
+-        android:layout_width="match_parent"
+-        android:layout_height="match_parent"
+-        android:paddingTop="@dimen/qsb_bar_height_inset"
+-        android:paddingBottom="@dimen/button_bar_height"
+-        launcher:pageSpacing="@dimen/workspace_page_spacing"
+-        launcher:scrollIndicatorPaddingLeft="@dimen/workspace_divider_padding_left"
+-        launcher:scrollIndicatorPaddingRight="@dimen/workspace_divider_padding_right" />
+-
+     <include layout="@layout/hotseat"
+         android:id="@+id/hotseat"
+         android:layout_width="match_parent"
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 08c14de..7514c91 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -312,6 +312,8 @@ s -->
+     <string name="preferences_interface_homescreen_scrolling_fade_adjacent_screens_summary">Fade the side pages when scrolling homescreens</string>
+     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_title">Scroll wallpaper</string>
+     <string name="preferences_interface_homescreen_scrolling_scroll_wallpaper_summary">Scroll wallpaper when scrolling homescreens</string>
++<string name="preferences_interface_homescreen_scrolling_wallpaper_hack_title">Wallpaper quick render</string>
++    <string name="preferences_interface_homescreen_scrolling_wallpaper_hack_summary">Use wallpaper hack that increases smoothness on static image wallpapers</string>
+     <string name="preferences_interface_homescreen_indicator_category">Indicator</string>
+     <string name="preferences_interface_homescreen_indicator_enable_title">Show page indicator</string>
+     <string name="preferences_interface_homescreen_indicator_enable_summary">Show current page indicator at the bottom of the screen</string>
+diff --git a/res/xml/preferences.xml b/res/xml/preferences.xml
+index ebfe5b3..b403be4 100644
+--- a/res/xml/preferences.xml
++++ b/res/xml/preferences.xml
+@@ -84,6 +84,10 @@
+                     android:title="@string/preferences_interface_homescreen_scrolling_scroll_wallpaper_title"
+                     android:summary="@string/preferences_interface_homescreen_scrolling_scroll_wallpaper_summary"
+                     android:defaultValue="true" />
++                <CheckBoxPreference android:key="ui_homescreen_scrolling_wallpaper_hack"
++                    android:title="@string/preferences_interface_homescreen_scrolling_wallpaper_hack_title"
++                    android:summary="@string/preferences_interface_homescreen_scrolling_wallpaper_hack_summary"
++                    android:defaultValue="true" />
+             </PreferenceCategory>
+             <PreferenceCategory android:key="ui_homescreen_indicator"
+                 android:title="@string/preferences_interface_homescreen_indicator_category">
+-- 
+1.7.9.5
+

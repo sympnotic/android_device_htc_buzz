@@ -1,0 +1,30 @@
+From cb1be49211b07a45178ffa01186c52f9fb111e14 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 21:19:13 +0100
+Subject: [PATCH] Trebuchet: Remove wallpaper offset
+ http://review.cyanogenmod.org/#/c/23612/
+
+Change-Id: I69a08f7c7a25985609f61842e40f668dee50de68
+---
+ src/com/cyanogenmod/trebuchet/Workspace.java |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index 5a03a2f..85cfeb1 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -1012,9 +1012,9 @@ public class Workspace extends PagedView
+ 
+     class WallpaperOffsetInterpolator {
+         float mFinalHorizontalWallpaperOffset = 0.0f;
+-        float mFinalVerticalWallpaperOffset = 0.5f;
++        float mFinalVerticalWallpaperOffset = 0.0f;
+         float mHorizontalWallpaperOffset = 0.0f;
+-        float mVerticalWallpaperOffset = 0.5f;
++        float mVerticalWallpaperOffset = 0.0f;
+         long mLastWallpaperOffsetUpdateTime;
+         boolean mIsMovingFast;
+         boolean mOverrideHorizontalCatchupConstant;
+-- 
+1.7.9.5
+

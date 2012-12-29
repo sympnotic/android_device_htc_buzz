@@ -1,0 +1,60 @@
+From 271b462c0a331396bd61594a90c407957a78fdee Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 23:24:05 +0100
+Subject: [PATCH] Workspace: Don't set wallpaper visibility with hack
+ http://review.cyanogenmod.org/#/c/28249/
+
+Change-Id: I990d67e903d56f63b3734417b181eedd675a6414
+---
+ src/com/cyanogenmod/trebuchet/Launcher.java  |    4 +---
+ src/com/cyanogenmod/trebuchet/Workspace.java |    3 ---
+ 2 files changed, 1 insertion(+), 6 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/Launcher.java b/src/com/cyanogenmod/trebuchet/Launcher.java
+index 3f7c7a5..467b779 100644
+--- a/src/com/cyanogenmod/trebuchet/Launcher.java
++++ b/src/com/cyanogenmod/trebuchet/Launcher.java
+@@ -263,8 +263,6 @@ public final class Launcher extends Activity
+     private boolean mHideIconLabels;
+     private boolean mAutoRotate;
+ 
+-    private boolean mWallpaperVisible;
+-
+     private Runnable mBuildLayersRunnable = new Runnable() {
+         public void run() {
+             if (mWorkspace != null) {
+@@ -2293,7 +2291,7 @@ public final class Launcher extends Activity
+     }
+ 
+     void updateWallpaperVisibility(boolean visible) {
+-         int wpflags = visible && mWallpaperVisible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;
++        int wpflags = visible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;;
+         int curflags = getWindow().getAttributes().flags
+                 & WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+         if (wpflags != curflags) {
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index ad1a8b4..54e31c1 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -545,7 +545,6 @@ public class Workspace extends PagedView
+                 }
+             }
+         }
+-        mLauncher.setWallpaperVisibility(mWallpaperBitmap == null);
+ 
+         // Make sure wallpaper gets redrawn to avoid ghost wallpapers
+ 	invalidate();
+@@ -861,10 +860,8 @@ public class Workspace extends PagedView
+ 
+         // Update wallpaper offsets to match hack (for recent apps window)
+         if (mWallpaperHack && mWallpaperBitmap != null) {
+-            mLauncher.setWallpaperVisibility(true);
+             mWallpaperManager.setWallpaperOffsetSteps(1.0f / (getChildCount() - 1), 1.0f);
+             mWallpaperManager.setWallpaperOffsets(mWindowToken, mWallpaperScroll, 0);
+-            mLauncher.setWallpaperVisibility(false);
+         }
+     }
+ 
+-- 
+1.7.9.5
+

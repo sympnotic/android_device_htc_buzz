@@ -1,0 +1,222 @@
+From dbfb154d0128fa689ee11bc47474d84ce090e6a5 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 22:54:09 +0100
+Subject: [PATCH] Wallpaper Hack http://review.cyanogenmod.org/#/c/27326/
+
+Change-Id: Ic01792c856b664cda06cbd4b5b3c4c00f05ed503
+---
+ src/com/cyanogenmod/trebuchet/Launcher.java        |   12 +++-
+ src/com/cyanogenmod/trebuchet/Workspace.java       |   73 ++++++++++++++++++--
+ .../trebuchet/preference/PreferencesProvider.java  |    4 ++
+ 3 files changed, 83 insertions(+), 6 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/Launcher.java b/src/com/cyanogenmod/trebuchet/Launcher.java
+index a242c8b..d4f1191 100644
+--- a/src/com/cyanogenmod/trebuchet/Launcher.java
++++ b/src/com/cyanogenmod/trebuchet/Launcher.java
+@@ -263,6 +263,8 @@ public final class Launcher extends Activity
+     private boolean mHideIconLabels;
+     private boolean mAutoRotate;
+ 
++    private boolean mWallpaperVisible;
++
+     private Runnable mBuildLayersRunnable = new Runnable() {
+         public void run() {
+             if (mWorkspace != null) {
+@@ -1093,6 +1095,8 @@ public final class Launcher extends Activity
+             } else if (Intent.ACTION_USER_PRESENT.equals(action)) {
+                 mUserPresent = true;
+                 updateRunning();
++            } else if (Intent.ACTION_SET_WALLPAPER.equals(action)) {
++                mWorkspace.checkWallpaper();
+             }
+         }
+     };
+@@ -1105,6 +1109,7 @@ public final class Launcher extends Activity
+         final IntentFilter filter = new IntentFilter();
+         filter.addAction(Intent.ACTION_SCREEN_OFF);
+         filter.addAction(Intent.ACTION_USER_PRESENT);
++        filter.addAction(Intent.ACTION_SET_WALLPAPER);
+         registerReceiver(mReceiver, filter);
+ 
+         mAttached = true;
+@@ -2293,8 +2298,13 @@ public final class Launcher extends Activity
+         view.setPivotY(view.getHeight() / 2.0f);
+     }
+ 
++    void setWallpaperVisibility(boolean visible) {
++        mWallpaperVisible = visible;
++        updateWallpaperVisibility(visible);
++    }
++
+     void updateWallpaperVisibility(boolean visible) {
+-        int wpflags = visible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;
++         int wpflags = visible && mWallpaperVisible ? WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER : 0;
+         int curflags = getWindow().getAttributes().flags
+                 & WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
+         if (wpflags != curflags) {
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index 5b25d23..3770ea6 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -49,6 +49,7 @@ import android.graphics.PorterDuff;
+ import android.graphics.Rect;
+ import android.graphics.RectF;
+ import android.graphics.Region.Op;
++import android.graphics.drawable.BitmapDrawable;
+ import android.graphics.drawable.Drawable;
+ import android.os.IBinder;
+ import android.os.Parcelable;
+@@ -118,8 +119,14 @@ public class Workspace extends PagedView
+     private float mWallpaperScrollRatio = 1.0f;
+ 
+     private final WallpaperManager mWallpaperManager;
++    private boolean mWallpaperHack;
++    private Bitmap mWallpaperBitmap;
++    private float mWallpaperScrollX;
++    private float mWallpaperScrollY;
++    private int[] mWallpaperOffsets = new int[2];
++    private Paint mPaint = new Paint();
+     private IBinder mWindowToken;
+-    private static final float WALLPAPER_SCREENS_SPAN = 2f;
++    private static final float DEFAULT_WALLPAPER_SCREENS_SPAN = 2f;
+ 
+     /**
+      * CellInfo for the cell that is currently being dragged
+@@ -339,6 +346,7 @@ public class Workspace extends PagedView
+         mResizeAnyWidget = PreferencesProvider.Interface.Homescreen.getResizeAnyWidget(context);
+         mHideIconLabels = PreferencesProvider.Interface.Homescreen.getHideIconLabels(context);
+         mScrollWallpaper = PreferencesProvider.Interface.Homescreen.Scrolling.getScrollWallpaper(context);
++         mWallpaperHack = PreferencesProvider.Interface.Homescreen.Scrolling.getWallpaperHack(context);
+         mTransitionEffect = PreferencesProvider.Interface.Homescreen.Scrolling.getTransitionEffect(context,
+                 res.getString(R.string.config_workspaceDefaultTransitionEffect));
+         mFadeInAdjacentScreens = PreferencesProvider.Interface.Homescreen.Scrolling.getFadeInAdjacentScreens(context,
+@@ -349,6 +357,7 @@ public class Workspace extends PagedView
+ 
+         mLauncher = (Launcher) context;
+         initWorkspace();
++        checkWallpaper();
+ 
+         // Disable multitouch across the workspace/all apps/customize tray
+         setMotionEventSplittingEnabled(true);
+@@ -521,6 +530,21 @@ public class Workspace extends PagedView
+         }
+     }
+ 
++    protected void checkWallpaper() {
++        if (mWallpaperHack) {
++            if (mWallpaperBitmap != null) {
++                mWallpaperBitmap = null;
++            }
++            if (mWallpaperManager.getWallpaperInfo() == null) {
++                Drawable wallpaper = mWallpaperManager.getDrawable();
++                if (wallpaper instanceof BitmapDrawable) {
++                    mWallpaperBitmap = ((BitmapDrawable) wallpaper).getBitmap();
++                }
++            }
++        }
++        mLauncher.setWallpaperVisibility(mWallpaperBitmap == null);
++     }
++
+     @Override
+     protected void onViewAdded(View child) {
+         super.onViewAdded(child);
+@@ -889,7 +913,7 @@ public class Workspace extends PagedView
+             mWallpaperWidth = (int) (maxDim * wallpaperTravelToScreenWidthRatio(maxDim, minDim));
+             mWallpaperHeight = maxDim;
+         } else {
+-            mWallpaperWidth = Math.max((int) (minDim * WALLPAPER_SCREENS_SPAN), maxDim);
++            mWallpaperWidth = Math.max((int) (minDim * DEFAULT_WALLPAPER_SCREENS_SPAN), maxDim);
+             mWallpaperHeight = maxDim;
+         }
+         new Thread("setWallpaperDimension") {
+@@ -950,8 +974,12 @@ public class Workspace extends PagedView
+     }
+ 
+     private void centerWallpaperOffset() {
+-        mWallpaperManager.setWallpaperOffsetSteps(0.5f, 0);
+-        mWallpaperManager.setWallpaperOffsets(getWindowToken(), 0.5f, 0);
++        if (mWallpaperHack) {
++           mWallpaperScrollX = 0.5f;
++        } else {
++           mWallpaperManager.setWallpaperOffsetSteps(0.5f, 0);
++           mWallpaperManager.setWallpaperOffsets(getWindowToken(), 0.5f, 0);
++        }
+     }
+ 
+     public void updateWallpaperOffsetImmediately() {
+@@ -970,7 +998,10 @@ public class Workspace extends PagedView
+             updateNow = keepUpdating = mWallpaperOffset.computeScrollOffset();
+         }
+         if (updateNow) {
+-            if (mWindowToken != null) {
++            if (mWallpaperHack) {
++                mWallpaperScrollX = mWallpaperOffset.getCurrX();
++                mWallpaperScrollY = mWallpaperOffset.getCurrY();
++            } else if (mWindowToken != null) {
+                 mWallpaperManager.setWallpaperOffsets(mWindowToken,
+                         mWallpaperOffset.getCurrX(), mWallpaperOffset.getCurrY());
+             }
+@@ -1551,12 +1582,44 @@ public class Workspace extends PagedView
+         }
+     }
+ 
++     protected void onSizeChanged (int w, int h, int oldw, int oldh) {
++        super.onSizeChanged(w, h, oldw, oldh);
++
++        getLocationOnScreen(mWallpaperOffsets);
++    }
++
+     @Override
+     protected void onDraw(Canvas canvas) {
+         if (mScrollWallpaper) {
+             updateWallpaperOffsets();
+         }
+ 
++     // Draw the wallpaper if necessary
++        if (mWallpaperHack && mWallpaperBitmap != null) {
++            float x = getScrollX();
++            float y = getScrollY();
++
++            int width = getWidth();
++            int height = getHeight();
++            int wallpaperWidth = mWallpaperBitmap.getWidth();
++            int wallpaperHeight = mWallpaperBitmap.getHeight();
++
++            if (width + mWallpaperOffsets[0] > wallpaperWidth) {
++                // Wallpaper is smaller than screen
++                x += (width - wallpaperWidth) / 2;
++            } else {
++                x -= mWallpaperScrollX * (wallpaperWidth - width) + mWallpaperOffsets[0];
++            }
++            if (height + mWallpaperOffsets[1] > wallpaperHeight) {
++                // Wallpaper is smaller than screen
++                y += (height - wallpaperHeight) / 2;
++            } else {
++                y -= mWallpaperScrollY * (wallpaperHeight - height) + mWallpaperOffsets[1];
++            }
++
++            canvas.drawBitmap(mWallpaperBitmap, x, y, mPaint);
++        }
++
+         // Draw the background gradient if necessary
+         if (mBackground != null && mBackgroundAlpha > 0.0f && mDrawBackground) {
+             int alpha = (int) (mBackgroundAlpha * 255);
+diff --git a/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java b/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java
+index 57cb5ad..17f9c1a 100644
+--- a/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java
++++ b/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java
+@@ -84,6 +84,10 @@ public final class PreferencesProvider {
+                     final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, 0);
+                     return preferences.getBoolean("ui_homescreen_scrolling_scroll_wallpaper", true);
+                 }
++                public static boolean getWallpaperHack(Context context) {
++                    final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, 0);
++                    return preferences.getBoolean("ui_homescreen_scrolling_wallpaper_hack", true);
++                }
+                 public static Workspace.TransitionEffect getTransitionEffect(Context context, String def) {
+                     final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, 0);
+                     return Workspace.TransitionEffect.valueOf(
+-- 
+1.7.9.5
+

@@ -1,0 +1,32 @@
+From f82ea6b574bd2a2e335090acd339ec0b4b754fb8 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 21:37:45 +0100
+Subject: [PATCH] Fix desktop alignment when Search Bar is hidden
+ http://review.cyanogenmod.org/#/c/27186/
+
+Change-Id: I917290f91e7cb6120a55347180702764b76af490
+---
+ src/com/cyanogenmod/trebuchet/Workspace.java |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index 85cfeb1..a58cca7 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -481,10 +481,12 @@ public class Workspace extends PagedView
+ 
+         if (!mShowSearchBar) {
+             int paddingTop = 0;
++            int paddingLeft = 0;
+             if (mLauncher.getCurrentOrientation() == Configuration.ORIENTATION_PORTRAIT) {
+                 paddingTop = (int)res.getDimension(R.dimen.qsb_bar_hidden_inset);
++                paddingLeft = getPaddingRight();
+             }
+-            setPadding(0, paddingTop, getPaddingRight(), getPaddingBottom());
++            setPadding(paddingLeft, paddingTop, getPaddingRight(), getPaddingBottom());
+         }
+ 
+         if (!mShowScrollingIndicator) {
+-- 
+1.7.9.5
+

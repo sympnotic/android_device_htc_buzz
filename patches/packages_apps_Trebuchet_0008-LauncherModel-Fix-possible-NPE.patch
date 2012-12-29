@@ -1,0 +1,27 @@
+From fa3705847b27e6b62f86bb6703aa5c6517772a02 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 22:29:20 +0100
+Subject: [PATCH] LauncherModel: Fix possible NPE
+ http://review.cyanogenmod.org/#/c/27483/
+
+Change-Id: I338b21ff36ba9ba4b0b6334ab94eb0f6c51f3365
+---
+ src/com/cyanogenmod/trebuchet/LauncherModel.java |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/LauncherModel.java b/src/com/cyanogenmod/trebuchet/LauncherModel.java
+index 433c136..245315e 100644
+--- a/src/com/cyanogenmod/trebuchet/LauncherModel.java
++++ b/src/com/cyanogenmod/trebuchet/LauncherModel.java
+@@ -225,7 +225,7 @@ public class LauncherModel extends BroadcastReceiver {
+                 // Items are added/removed from the corresponding FolderInfo elsewhere, such
+                 // as in Workspace.onDrop. Here, we just add/remove them from the list of items
+                 // that are on the desktop, as appropriate
+-                if (modelItem.container == LauncherSettings.Favorites.CONTAINER_DESKTOP ||
++                if (modelItem != null && (modelItem.container == LauncherSettings.Favorites.CONTAINER_DESKTOP ||
+                         modelItem.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
+                     if (!sWorkspaceItems.contains(modelItem)) {
+                         sWorkspaceItems.add(modelItem);
+-- 
+1.7.9.5
+

@@ -1,0 +1,419 @@
+From 9f751ae1e7b07dc00a9a465fa97c3036673c4283 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 23:12:00 +0100
+Subject: [PATCH] Revert "Trebuchet : Add a pref to set hotseat icon's number"
+ This is causing a lot of weirdness on tablets' hotseats, +
+ mild weirdness (such as roaming AllApps icon) on phones
+ This reverts commit
+ c0f9633dd9b274b00b44ba31c329b0270cf0b357.
+
+---
+ res/values/strings.xml                             |    2 --
+ res/xml/preferences.xml                            |   11 ++----
+ .../cyanogenmod/trebuchet/AllAppsButtonInfo.java   |   35 --------------------
+ .../cyanogenmod/trebuchet/DeleteDropTarget.java    |    7 ----
+ src/com/cyanogenmod/trebuchet/Hotseat.java         |   34 ++-----------------
+ src/com/cyanogenmod/trebuchet/ItemInfo.java        |    1 -
+ src/com/cyanogenmod/trebuchet/Launcher.java        |   11 ------
+ src/com/cyanogenmod/trebuchet/LauncherModel.java   |   23 +++++--------
+ .../cyanogenmod/trebuchet/LauncherSettings.java    |    5 ---
+ .../cyanogenmod/trebuchet/SearchDropTargetBar.java |   11 ------
+ src/com/cyanogenmod/trebuchet/Workspace.java       |   22 +-----------
+ .../trebuchet/preference/Preferences.java          |    3 --
+ .../trebuchet/preference/PreferencesProvider.java  |   14 +-------
+ 13 files changed, 15 insertions(+), 164 deletions(-)
+ delete mode 100644 src/com/cyanogenmod/trebuchet/AllAppsButtonInfo.java
+
+diff --git a/res/values/strings.xml b/res/values/strings.xml
+index 7514c91..15ee1d4 100644
+--- a/res/values/strings.xml
++++ b/res/values/strings.xml
+@@ -340,8 +340,6 @@ s -->
+ 
+     <!-- Dock -->
+     <string name="preferences_interface_dock_title">Dock</string>
+-    <string name="preferences_interface_dock_size_title">Dock icons</string>
+-     <string name="preferences_interface_dock_size_summary">Choose the number of icons in the dock</string>
+ 
+     <!-- Icons -->
+     <string name="preferences_interface_icons_title">Icons</string>
+diff --git a/res/xml/preferences.xml b/res/xml/preferences.xml
+index b403be4..0d40503 100644
+--- a/res/xml/preferences.xml
++++ b/res/xml/preferences.xml
+@@ -142,15 +142,10 @@
+         </PreferenceScreen>
+ 
+         <!-- Dock -->
+-        <PreferenceScreen android:key="ui_dock"
++        <!-- <PreferenceScreen android:key="ui_dock"
+             android:title="@string/preferences_interface_dock_title">
+-            <com.cyanogenmod.trebuchet.preference.NumberPickerPreference android:key="ui_dock_hotseat_size"
+-            android:title="@string/preferences_interface_dock_size_title"
+-                android:summary="@string/preferences_interface_dock_size_summary"
+-                android:defaultValue="@integer/hotseat_cell_count"
+-                launcher:max="9"
+-                launcher:min="1" />
+-        </PreferenceScreen>
++
++        </PreferenceScreen> -->
+ 
+         <!-- Icons -->
+         <!-- <PreferenceScreen android:key="ui_icons"
+diff --git a/src/com/cyanogenmod/trebuchet/AllAppsButtonInfo.java b/src/com/cyanogenmod/trebuchet/AllAppsButtonInfo.java
+deleted file mode 100644
+index b4ebe10..0000000
+--- a/src/com/cyanogenmod/trebuchet/AllAppsButtonInfo.java
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/*
+- * Copyright (C) 2008 The Android Open Source Project
+- *
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- *      http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-package com.cyanogenmod.trebuchet;
+-
+-/**
+- * Represents the AllApps button in hotseat
+- */
+-class AllAppsButtonInfo extends ItemInfo {
+-
+-    AllAppsButtonInfo() {
+-        itemType = LauncherSettings.BaseLauncherColumns.ITEM_TYPE_ALLAPPS;
+-    }
+-
+-    @Override
+-    public String toString() {
+-        return "AllAppsButtonInfo(id=" + this.id + " type=" + this.itemType
+-                + " container=" + this.container + " screen=" + screen
+-                + " cellX=" + cellX + " cellY=" + cellY + " spanX=" + spanX + " spanY=" + spanY
+-                + " isGesture=" + isGesture + " dropPos=" + dropPos + ")";
+-    }
+-}
+diff --git a/src/com/cyanogenmod/trebuchet/DeleteDropTarget.java b/src/com/cyanogenmod/trebuchet/DeleteDropTarget.java
+index 6aa3e02..28fabef 100644
+--- a/src/com/cyanogenmod/trebuchet/DeleteDropTarget.java
++++ b/src/com/cyanogenmod/trebuchet/DeleteDropTarget.java
+@@ -111,9 +111,6 @@ public class DeleteDropTarget extends ButtonDropTarget {
+     private boolean isWorkspaceFolder(DragSource source, Object info) {
+         return (source instanceof Workspace) && (info instanceof FolderInfo);
+     }
+-    private boolean isAllAppsButton(Object info) {
+-        return (info instanceof AllAppsButtonInfo);
+-    }
+ 
+     @Override
+     public boolean acceptDrop(DragObject d) {
+@@ -123,10 +120,6 @@ public class DeleteDropTarget extends ButtonDropTarget {
+ 
+     @Override
+     public void onDragStart(DragSource source, Object info, int dragAction) {
+-        // If it's the AllApps button, from Hotseat, don't do anything.
+-        if (isAllAppsButton(info)) {
+-            return;
+-        }
+         boolean isUninstall = false;
+ 
+         // If we are dragging an application from AppsCustomize, only show the uninstall control if we
+diff --git a/src/com/cyanogenmod/trebuchet/Hotseat.java b/src/com/cyanogenmod/trebuchet/Hotseat.java
+index 1908512..524da5a 100644
+--- a/src/com/cyanogenmod/trebuchet/Hotseat.java
++++ b/src/com/cyanogenmod/trebuchet/Hotseat.java
+@@ -51,26 +51,10 @@ public class Hotseat extends FrameLayout {
+ 
+         TypedArray a = context.obtainStyledAttributes(attrs,
+                 R.styleable.Hotseat, defStyle, 0);
+-
+-        int numberHotseatIcons = PreferencesProvider.Interface.Dock.getNumberHotseatIcons(context);
+-        int defaultHotseatIcon = PreferencesProvider.Interface.Dock.getDefaultHotseatIcon(context,
+-                context.getResources().getInteger(R.integer.hotseat_all_apps_index));
+-         if (defaultHotseatIcon >= numberHotseatIcons) {
+-            defaultHotseatIcon = numberHotseatIcons - 1;
+-            PreferencesProvider.Interface.Dock.setDefaultHotseatIcon(context, defaultHotseatIcon);
+-        }
+-
++        mCellCountX = a.getInt(R.styleable.Hotseat_cellCountX, -1);
++        mCellCountY = a.getInt(R.styleable.Hotseat_cellCountY, -1);
+         mIsLandscape = context.getResources().getConfiguration().orientation ==
+             Configuration.ORIENTATION_LANDSCAPE;
+-
+-        if (mIsLandscape) {
+-            mCellCountX = a.getInt(R.styleable.Hotseat_cellCountX, -1);
+-            mCellCountY = numberHotseatIcons;
+-        } else {
+-            mCellCountX = numberHotseatIcons;
+-            mCellCountY = a.getInt(R.styleable.Hotseat_cellCountY, -1);
+-        }
+-        mAllAppsButtonRank = defaultHotseatIcon;
+     }
+ 
+     public void setup(Launcher launcher) {
+@@ -139,24 +123,10 @@ public class Hotseat extends FrameLayout {
+             }
+         });
+ 
+-        allAppsButton.setOnLongClickListener(new View.OnLongClickListener() {
+-            @Override
+-            public boolean onLongClick(View v) {
+-                if (mLauncher != null) {
+-                    return mLauncher.onLongClick(v);
+-                }
+-                return false;
+-            }
+-        });
+-
+         // Note: We do this to ensure that the hotseat is always laid out in the orientation of
+         // the hotseat in order regardless of which orientation they were added
+         int x = getCellXFromOrder(sAllAppsButtonRank);
+         int y = getCellYFromOrder(sAllAppsButtonRank);
+-        AllAppsButtonInfo allAppsButtonInfo = new AllAppsButtonInfo();
+-        allAppsButtonInfo.cellX = x;
+-        allAppsButtonInfo.cellY = y;
+-        allAppsButton.setTag(allAppsButtonInfo);
+         mContent.addViewToCellLayout(allAppsButton, -1, 0, new CellLayout.LayoutParams(x,y,1,1),
+                 true);
+     }
+diff --git a/src/com/cyanogenmod/trebuchet/ItemInfo.java b/src/com/cyanogenmod/trebuchet/ItemInfo.java
+index b5c0402..46374cb 100644
+--- a/src/com/cyanogenmod/trebuchet/ItemInfo.java
++++ b/src/com/cyanogenmod/trebuchet/ItemInfo.java
+@@ -38,7 +38,6 @@ class ItemInfo {
+     /**
+      * One of {@link LauncherSettings.Favorites#ITEM_TYPE_APPLICATION},
+      * {@link LauncherSettings.Favorites#ITEM_TYPE_SHORTCUT},
+-     * {@link LauncherSettings.Favorites#ITEM_TYPE_ALLAPPS},
+      * {@link LauncherSettings.Favorites#ITEM_TYPE_FOLDER}, or
+      * {@link LauncherSettings.Favorites#ITEM_TYPE_APPWIDGET}.
+      */
+diff --git a/src/com/cyanogenmod/trebuchet/Launcher.java b/src/com/cyanogenmod/trebuchet/Launcher.java
+index d4f1191..3f7c7a5 100644
+--- a/src/com/cyanogenmod/trebuchet/Launcher.java
++++ b/src/com/cyanogenmod/trebuchet/Launcher.java
+@@ -2276,17 +2276,6 @@ public final class Launcher extends Activity
+         return (mState == State.APPS_CUSTOMIZE);
+     }
+ 
+-    public boolean isAllAppsButtonRank(int rank) {
+-        return (mHotseat != null) ? mHotseat.isAllAppsButtonRank(rank) : false;
+-    }
+-
+-    // AllAppsView.Watcher
+-    public void zoomed(float zoom) {
+-        if (zoom == 1.0f) {
+-           mWorkspace.setVisibility(View.GONE);
+-        }
+-     }
+-
+     /**
+      * Helper method for the cameraZoomIn/cameraZoomOut animations
+      * @param view The view being animated
+diff --git a/src/com/cyanogenmod/trebuchet/LauncherModel.java b/src/com/cyanogenmod/trebuchet/LauncherModel.java
+index 245315e..7b2bc0b 100644
+--- a/src/com/cyanogenmod/trebuchet/LauncherModel.java
++++ b/src/com/cyanogenmod/trebuchet/LauncherModel.java
+@@ -921,15 +921,13 @@ public class LauncherModel extends BroadcastReceiver {
+ 
+                 // We use the last index to refer to the hotseat and the screen as the rank, so
+                 // test and update the occupied state accordingly
+-                if (occupied[PreferencesProvider.Interface.Homescreen.getNumberHomescreens(mContext)]
+-                          [item.screen][0] != null) {
++                if (occupied[Launcher.MAX_SCREEN_COUNT][item.screen][0] != null) {
+                     Log.e(TAG, "Error loading shortcut into hotseat " + item
+                         + " into position (" + item.screen + ":" + item.cellX + "," + item.cellY
+                         + ") occupied by " + occupied[Launcher.MAX_SCREEN_COUNT][item.screen][0]);
+                     return false;
+                 } else {
+-                     occupied[PreferencesProvider.Interface.Homescreen.getNumberHomescreens(mContext)]
+-                             [item.screen][0] = item;
++                    occupied[Launcher.MAX_SCREEN_COUNT][item.screen][0] = item;
+                     return true;
+                 }
+             } else if (item.container != LauncherSettings.Favorites.CONTAINER_DESKTOP) {
+@@ -974,20 +972,17 @@ public class LauncherModel extends BroadcastReceiver {
+             sItemsIdMap.clear();
+             sDbIconCache.clear();
+ 
+-            // +1 for the hotseat (it can be larger than the workspace)
+-            // Load workspace in reverse order to ensure that latest items are loaded first (and
+-            // before any earlier duplicates)
+-            int numberHotseatIcons = PreferencesProvider.Interface.Dock.getNumberHotseatIcons(mContext);
+-
+-            final ItemInfo occupied[][][] =
+-                    new ItemInfo[PreferencesProvider.Interface.Homescreen.getNumberHomescreens(mContext) + 1]
+-                            [Math.max(mCellCountX, numberHotseatIcons)][mCellCountY];
+-
+             final ArrayList<Long> itemsToRemove = new ArrayList<Long>();
+ 
+             final Cursor c = contentResolver.query(
+                     LauncherSettings.Favorites.CONTENT_URI, null, null, null, null);
+ 
++            // +1 for the hotseat (it can be larger than the workspace)
++            // Load workspace in reverse order to ensure that latest items are loaded first (and
++            // before any earlier duplicates)
++            final ItemInfo occupied[][][] =
++                    new ItemInfo[Launcher.MAX_SCREEN_COUNT + 1][mCellCountX + 1][mCellCountY + 1];
++
+             try {
+                 final int idIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites._ID);
+                 final int intentIndex = c.getColumnIndexOrThrow
+@@ -1062,8 +1057,6 @@ public class LauncherModel extends BroadcastReceiver {
+ 
+                                 // check & update map of what's occupied
+                                 if (!checkItemPlacement(occupied, info)) {
+-                                    id = c.getLong(idIndex);
+-                                    itemsToRemove.add(id);
+                                     break;
+                                 }
+ 
+diff --git a/src/com/cyanogenmod/trebuchet/LauncherSettings.java b/src/com/cyanogenmod/trebuchet/LauncherSettings.java
+index 1cc1303..361dd69 100644
+--- a/src/com/cyanogenmod/trebuchet/LauncherSettings.java
++++ b/src/com/cyanogenmod/trebuchet/LauncherSettings.java
+@@ -56,11 +56,6 @@ class LauncherSettings {
+         static final int ITEM_TYPE_SHORTCUT = 1;
+ 
+         /**
+-         * The gesture is the All Apps button
+-         */
+-        static final int ITEM_TYPE_ALLAPPS = 5;
+-
+-        /**
+          * The icon type.
+          * <P>Type: INTEGER</P>
+          */
+diff --git a/src/com/cyanogenmod/trebuchet/SearchDropTargetBar.java b/src/com/cyanogenmod/trebuchet/SearchDropTargetBar.java
+index f42e38b..49c2633 100644
+--- a/src/com/cyanogenmod/trebuchet/SearchDropTargetBar.java
++++ b/src/com/cyanogenmod/trebuchet/SearchDropTargetBar.java
+@@ -197,22 +197,11 @@ public class SearchDropTargetBar extends FrameLayout implements DragController.D
+         return sTransitionOutDuration;
+     }
+ 
+-
+-    private boolean isAllAppsButton(Object info) {
+-        return (info instanceof AllAppsButtonInfo);
+-    }
+-
+     /*
+      * DragController.DragListener implementation
+      */
+     @Override
+     public void onDragStart(DragSource source, Object info, int dragAction) {
+-        // If it's the AllApps button, from Hotseat, don't do anything.
+-        if (isAllAppsButton(info)) {
+-            deferOnDragEnd();
+-            return;
+-        }
+-
+         // Animate out the QSB search bar, and animate in the drop target bar
+         mDropTargetBar.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+         mDropTargetBar.buildLayer();
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index ad0f65e..89533d4 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -2657,24 +2657,8 @@ public class Workspace extends PagedView
+                         }
+                     }
+ 
+-                    // No_id check required as the AllApps button doesn't have an item info id
+-                    if (info.id != ItemInfo.NO_ID) {
+                     LauncherModel.moveItemInDatabase(mLauncher, info, container, screen, lp.cellX,
+                             lp.cellY);
+-                     } else if (info instanceof AllAppsButtonInfo) {
+-                             if (!LauncherApplication.isScreenLandscape(getContext())) {
+-                                 PreferencesProvider.Interface.Dock.setDefaultHotseatIcon(getContext(), lp.cellX);
+-                             } else {
+-                                 PreferencesProvider.Interface.Dock.setDefaultHotseatIcon(getContext(), lp.cellY);
+-                             }
+-                    }
+-                 } else {
+-                 // If we can't find a drop location, we return the item to its original position
+-	         CellLayout.LayoutParams lp = (CellLayout.LayoutParams) cell.getLayoutParams();
+-                 mTargetCell[0] = lp.cellX;
+-                 mTargetCell[1] = lp.cellY;
+-                 CellLayout layout = (CellLayout) cell.getParent().getParent();
+-                 layout.markCellsAsOccupiedForView(cell);
+                 }
+             }
+ 
+@@ -3105,10 +3089,6 @@ public class Workspace extends PagedView
+         return d.dragSource != this && isDragWidget(d);
+     }
+ 
+-    private boolean isDragAllAppsButton(DragObject d) {
+-        return (d.dragInfo instanceof AllAppsButtonInfo);
+-    }
+-
+     public void onDragOver(DragObject d) {
+         // Skip drag over events while we are dragging over side pages
+         if (mInScrollArea) return;
+@@ -3163,7 +3143,7 @@ public class Workspace extends PagedView
+             // Test to see if we are over the hotseat otherwise just use the current page
+             if (mLauncher.getHotseat() != null && !isDragWidget(d)) {
+                 mLauncher.getHotseat().getHitRect(r);
+-                if (r.contains(d.x, d.y) || isDragAllAppsButton(d)) {
++                if (r.contains(d.x, d.y)) {
+                     layout = mLauncher.getHotseat().getLayout();
+                 }
+             }
+diff --git a/src/com/cyanogenmod/trebuchet/preference/Preferences.java b/src/com/cyanogenmod/trebuchet/preference/Preferences.java
+index dc36e8a..6fe9a12 100644
+--- a/src/com/cyanogenmod/trebuchet/preference/Preferences.java
++++ b/src/com/cyanogenmod/trebuchet/preference/Preferences.java
+@@ -35,9 +35,6 @@ public class Preferences extends PreferenceActivity {
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         addPreferencesFromResource(R.xml.preferences);
+-        if (LauncherApplication.isScreenLarge()) {
+-            findPreference("ui_dock").setEnabled(false);
+-        }
+ 
+         mPrefs = getSharedPreferences(PreferencesProvider.PREFERENCES_KEY,
+                  Context.MODE_PRIVATE);
+diff --git a/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java b/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java
+index 17f9c1a..61f05bd 100644
+--- a/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java
++++ b/src/com/cyanogenmod/trebuchet/preference/PreferencesProvider.java
+@@ -20,7 +20,6 @@ import android.content.Context;
+ import android.content.SharedPreferences;
+ 
+ import com.cyanogenmod.trebuchet.LauncherApplication;
+-import com.cyanogenmod.trebuchet.R;
+ import com.cyanogenmod.trebuchet.Workspace;
+ import com.cyanogenmod.trebuchet.AppsCustomizePagedView;
+ 
+@@ -143,18 +142,7 @@ public final class PreferencesProvider {
+         }
+ 
+         public static class Dock {
+-            public static int getNumberHotseatIcons(Context context) {
+-                final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, 0);
+-                return preferences.getInt("ui_dock_hotseat_size", context.getResources().getInteger(R.integer.hotseat_cell_count));
+-            }
+-            public static int getDefaultHotseatIcon(Context context, int def) {
+-                final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, 0);
+-                return preferences.getInt("ui_dock_hotseat_apps_index", def);
+-            }
+-            public static void setDefaultHotseatIcon(Context context, int val) {
+-                final SharedPreferences preferences = context.getSharedPreferences(PREFERENCES_KEY, 0);
+-                preferences.edit().putInt("ui_dock_hotseat_apps_index", val).apply();
+-            }
++
+         }
+ 
+         public static class Icons {
+-- 
+1.7.9.5
+

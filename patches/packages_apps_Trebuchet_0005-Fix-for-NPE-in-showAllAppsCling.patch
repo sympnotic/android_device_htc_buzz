@@ -1,0 +1,63 @@
+From cebd5741c605ea376ed15a265eb181ed1868442f Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 29 Dec 2012 21:35:12 +0100
+Subject: [PATCH] Fix for NPE in showAllAppsCling
+ http://review.cyanogenmod.org/#/c/25490/
+
+Change-Id: I9ec924e9951af1ba37488e89230793a1ae628200
+---
+ .../trebuchet/AppsCustomizePagedView.java          |   37 ++++++++++----------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java b/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java
+index a31bf40..e09b1ec 100644
+--- a/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java
++++ b/src/com/cyanogenmod/trebuchet/AppsCustomizePagedView.java
+@@ -494,25 +494,26 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
+ 
+     public void showAllAppsCling() {
+         AppsCustomizeTabHost tabHost = getTabHost();
+-        if (tabHost == null) return;
+-        Cling allAppsCling = (Cling) tabHost.findViewById(R.id.all_apps_cling);
+-        if (!mHasShownAllAppsCling && isDataReady() && testDataReady()) {
+-            mHasShownAllAppsCling = true;
+-            // Calculate the position for the cling punch through
+-            int[] offset = new int[2];
+-            int[] pos = mWidgetSpacingLayout.estimateCellPosition(mClingFocusedX, mClingFocusedY);
+-            mLauncher.getDragLayer().getLocationInDragLayer(this, offset);
+-            // PagedViews are centered horizontally but top aligned
+-            pos[0] += (getMeasuredWidth() - mWidgetSpacingLayout.getMeasuredWidth()) / 2 +
+-                    offset[0];
+-            pos[1] += offset[1];
+-            mLauncher.showFirstRunAllAppsCling(pos);
+-        } else if (!mHasShownAllAppsSortCling && isDataReady() && testDataReady() &&
+-                allAppsCling != null && allAppsCling.isDismissed()) {
+-            mHasShownAllAppsSortCling = true;
+-            mLauncher.showFirstRunAllAppsSortCling();
++        if (tabHost != null) {
++            Cling allAppsCling = (Cling) tabHost.findViewById(R.id.all_apps_cling);
++             if (!mHasShownAllAppsCling && isDataReady()) {
++                mHasShownAllAppsCling = true;
++                // Calculate the position for the cling punch through
++                int[] offset = new int[2];
++                int[] pos = mWidgetSpacingLayout.estimateCellPosition(mClingFocusedX, mClingFocusedY);
++                mLauncher.getDragLayer().getLocationInDragLayer(this, offset);
++                // PagedViews are centered horizontally but top aligned
++                pos[0] += (getMeasuredWidth() - mWidgetSpacingLayout.getMeasuredWidth()) / 2 +
++                        offset[0];
++                pos[1] += offset[1];
++                mLauncher.showFirstRunAllAppsCling(pos);
++            } else if (!mHasShownAllAppsSortCling && isDataReady() &&
++                    allAppsCling != null && allAppsCling.isDismissed()) {
++                mHasShownAllAppsSortCling = true;
++                mLauncher.showFirstRunAllAppsSortCling();
++            }
+         }
+-    }
++    } 
+ 
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+-- 
+1.7.9.5
+
