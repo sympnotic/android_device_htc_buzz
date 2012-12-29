@@ -1,4 +1,4 @@
-From 500ee5e5918f337385b37ca4314f4a264a524087 Mon Sep 17 00:00:00 2001
+From b6d1eca3233f4eb97d122c81f87a7ecdda0fc0a6 Mon Sep 17 00:00:00 2001
 From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
 Date: Sat, 29 Dec 2012 12:20:24 +0100
 Subject: [PATCH] Trebuchet: port wallpaper hack
@@ -140,7 +140,7 @@ index 9283243..50e4260 100644
                  & WindowManager.LayoutParams.FLAG_SHOW_WALLPAPER;
          if (wpflags != curflags) {
 diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
-index 5a03a2f..e7763e7 100644
+index 5a03a2f..5bdb854 100644
 --- a/src/com/cyanogenmod/trebuchet/Workspace.java
 +++ b/src/com/cyanogenmod/trebuchet/Workspace.java
 @@ -49,6 +49,7 @@ import android.graphics.PorterDuff;
@@ -249,7 +249,7 @@ index 5a03a2f..e7763e7 100644
 +    protected void onSizeChanged (int w, int h, int oldw, int oldh) {
 +        super.onSizeChanged(w, h, oldw, oldh);
 +
-+        getLocationOnScreen(mWallpaperOffsets);	1429
++        getLocationOnScreen(mWallpaperOffsets);
 +    }
 +
      @Override
