@@ -54,8 +54,8 @@ index a31bf40..e09b1ec 100644
 +            }
          }
 -    }
-+    } 
- 
++    }
+
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
 -- 
