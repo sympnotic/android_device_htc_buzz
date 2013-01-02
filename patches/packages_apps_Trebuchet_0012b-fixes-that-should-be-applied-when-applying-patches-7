@@ -1,0 +1,69 @@
+From 3996ee06077777f9fdcf8fba81d1b910275eb438 Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Wed, 2 Jan 2013 01:02:03 +0100
+Subject: [PATCH] fixes that should be applied when applying patches
+ 7,8,9,10,11 & 12 simultaniously
+
+Change-Id: I68a3c668a7cbac4a2302b4358e172e6c8fab0dba
+---
+ src/com/cyanogenmod/trebuchet/LauncherModel.java |    2 +-
+ src/com/cyanogenmod/trebuchet/Workspace.java     |   16 +---------------
+ 2 files changed, 2 insertions(+), 16 deletions(-)
+
+diff --git a/src/com/cyanogenmod/trebuchet/LauncherModel.java b/src/com/cyanogenmod/trebuchet/LauncherModel.java
+index 7b2bc0b..1ba7d69 100644
+--- a/src/com/cyanogenmod/trebuchet/LauncherModel.java
++++ b/src/com/cyanogenmod/trebuchet/LauncherModel.java
+@@ -226,7 +226,7 @@ public class LauncherModel extends BroadcastReceiver {
+                 // as in Workspace.onDrop. Here, we just add/remove them from the list of items
+                 // that are on the desktop, as appropriate
+                 if (modelItem != null && (modelItem.container == LauncherSettings.Favorites.CONTAINER_DESKTOP ||
+-                        modelItem.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT) {
++                        modelItem.container == LauncherSettings.Favorites.CONTAINER_HOTSEAT)) {
+                     if (!sWorkspaceItems.contains(modelItem)) {
+                         sWorkspaceItems.add(modelItem);
+                     }
+diff --git a/src/com/cyanogenmod/trebuchet/Workspace.java b/src/com/cyanogenmod/trebuchet/Workspace.java
+index 89533d4..dcd9d8c 100644
+--- a/src/com/cyanogenmod/trebuchet/Workspace.java
++++ b/src/com/cyanogenmod/trebuchet/Workspace.java
+@@ -526,7 +526,6 @@ public class Workspace extends PagedView
+         mDisplayWidth = display.getWidth();
+         mDisplayHeight = display.getHeight();
+         if (mScrollWallpaper) {
+-            mWallpaperOffset = new WallpaperOffsetInterpolator();
+             mWallpaperTravelWidth = (int) (mDisplayWidth *
+                     wallpaperTravelToScreenWidthRatio(mDisplayWidth, mDisplayHeight));
+         }
+@@ -933,19 +932,6 @@ public class Workspace extends PagedView
+         }.start();
+     }
+ 
+-    public void setVerticalWallpaperOffset(float offset) {
+-        mWallpaperOffset.setFinalY(offset);
+-    }
+-    public float getVerticalWallpaperOffset() {
+-        return mWallpaperOffset.getCurrY();
+-    }
+-    public void setHorizontalWallpaperOffset(float offset) {
+-        mWallpaperOffset.setFinalX(offset);
+-    }
+-    public float getHorizontalWallpaperOffset() {
+-        return mWallpaperOffset.getCurrX();
+-    }
+-
+     private float wallpaperOffsetForCurrentScroll() {
+         // The wallpaper travel width is how far, from left to right, the wallpaper will move
+         // at this orientation. On tablets in portrait mode we don't move all the way to the
+@@ -979,7 +965,7 @@ public class Workspace extends PagedView
+     }
+     private void syncWallpaperOffsetWithScroll() {
+         if (mScrollWallpaper) {
+-            mWallpaperOffset.setFinalX(wallpaperOffsetForCurrentScroll());
++            mWallpaperInterpolator.setFinalX(wallpaperOffsetForCurrentScroll());
+         }
+     }
+ 
+-- 
+1.7.9.5
+
