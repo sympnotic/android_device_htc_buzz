@@ -39,7 +39,8 @@ TARGET_CPU_ABI2 := armeabi
 
 TARGET_NO_BOOTLOADER := true
 TARGET_NO_RADIOIMAGE := true
-BOARD_LDPI_RECOVERY := true
+TARGET_NO_RECOVERY := true
+# BOARD_LDPI_RECOVERY := true
 
 TARGET_BOOTLOADER_BOARD_NAME := buzz
 TARGET_OTA_ASSERT_DEVICE := buzz
@@ -63,8 +64,8 @@ WIFI_BAND                        := 802_11_ABG
 ## kernel
 TARGET_KERNEL_CONFIG   		:= buzz_defconfig
 # TARGET_PREBUILT_KERNEL 		:= device/htc/buzz/prebuilt/kernel
-TARGET_RECOVERY_INITRC 		:= device/htc/buzz/initramfs/init.recovery.rc
-TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
+# TARGET_RECOVERY_INITRC 		:= device/htc/buzz/initramfs/init.recovery.rc
+# TARGET_PREBUILT_RECOVERY_KERNEL := device/htc/buzz/prebuilt/recovery_kernel
 
 BOARD_KERNEL_CMDLINE 		:= no_console_suspend=1 console=null
 BOARD_KERNEL_BASE 		:= 0x02E00000
@@ -145,7 +146,7 @@ ENABLE_JSC_JIT := true
 # mtd5: 0af20000 00020000 "userdata"
 # Changed for Buzz
 BOARD_BOOTIMAGE_PARTITION_SIZE 		:= 2883584
-BOARD_RECOVERYIMAGE_PARTITION_SIZE 	:= 4325376
+# BOARD_RECOVERYIMAGE_PARTITION_SIZE 	:= 4325376
 BOARD_SYSTEMIMAGE_PARTITION_SIZE 	:= 262144000
 BOARD_USERDATAIMAGE_PARTITION_SIZE 	:= 183631872
 BOARD_FLASH_BLOCK_SIZE 			:= 131072
