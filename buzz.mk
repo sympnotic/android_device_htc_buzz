@@ -50,8 +50,11 @@ PRODUCT_COPY_FILES += \
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
-    $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329.bin:system/etc/firmware/fw_bcm4329.bin \
-    $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329_apsta.bin:system/etc/firmware/fw_bcm4329_apsta.bin \
+    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:root/etc/firmware/bcm4329.hcd \
+    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:system/vendor/firmware/bcm4329.hcd \
+    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.ko:root/lib/modules/bcm4329.ko \
+    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.ko:system/lib/modules/bcm4329.ko \
+    $(LOCAL_PATH)/prebuilt/wpa_supplicant_template.conf:system/etc/wifi/wpa_supplicant.conf \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
 # Media profile XML
@@ -107,7 +110,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
 # The gps config appropriate for this device
 $(call inherit-product, device/common/gps/gps_eu_supl.mk)
-
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor.mk)
 $(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
 
@@ -116,3 +118,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
     mobiledata.interfaces=rmnet0,rmnet1,rmnet2,gprs,ppp0 \
     wifi.interface=wlan0 \
     wifi.supplicant_scan_interval=15
+
+#Attempting to get wifi to work
+$(call inherit-product-if-exists, hardware/broadcom/wlan/bcm4329/Android.mk)
