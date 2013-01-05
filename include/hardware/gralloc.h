@@ -100,6 +100,9 @@ enum {
     GRALLOC_USAGE_PRIVATE_MASK          = 0xF0000000,
 };
 
+/* must not be defined when included from gralloc_priv.h */
+#ifndef GRALLOC_PRIV_H_
+
 enum {
     /* FIXME: this only exists to work-around some issues with
      * the video and camera frameworks. don't implement unless
@@ -107,6 +110,7 @@ enum {
      */
     GRALLOC_MODULE_PERFORM_CREATE_HANDLE_FROM_BUFFER = 0x080000001,
 };
+#endif /* GRALLOC_PRIV_H_ */
 
 /*****************************************************************************/
 
