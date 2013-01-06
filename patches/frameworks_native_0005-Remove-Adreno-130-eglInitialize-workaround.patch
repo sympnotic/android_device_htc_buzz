@@ -1,0 +1,41 @@
+From 85cb832710aa6e91bbe0ff7a78388317d617e6af Mon Sep 17 00:00:00 2001
+From: Erwin Pannecoucke <erwin.pannecoucke@gmail.com>
+Date: Sat, 5 Jan 2013 11:23:54 +0100
+Subject: [PATCH] Remove Adreno-130 eglInitialize() workaround
+
+Even though ADRENO130 is not defined (to my knowledge), this still
+gives an error that 'i' and 'IMPL_HARDWARE' are not defined.
+
+Change-Id: Ibc298ef3abbf3338442748ca995b09d12fd483cd
+---
+ opengl/libs/EGL/egl_display.cpp |   14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/opengl/libs/EGL/egl_display.cpp b/opengl/libs/EGL/egl_display.cpp
+index 7ca9e40..a5b0275 100644
+--- a/opengl/libs/EGL/egl_display.cpp
++++ b/opengl/libs/EGL/egl_display.cpp
+@@ -167,20 +167,6 @@ EGLBoolean egl_display_t::initialize(EGLint *major, EGLint *minor) {
+     cnx->minor = -1;
+     if (cnx->dso) {
+ 
+-#if defined(ADRENO130)
+-#warning "Adreno-130 eglInitialize() workaround"
+-        /*
+-         * The ADRENO 130 driver returns a different EGLDisplay each time
+-         * eglGetDisplay() is called, but also makes the EGLDisplay invalid
+-         * after eglTerminate() has been called, so that eglInitialize()
+-         * cannot be called again. Therefore, we need to make sure to call
+-         * eglGetDisplay() before calling eglInitialize();
+-         */
+-        if (i == IMPL_HARDWARE) {
+-            disp[i].dpy = cnx->egl.eglGetDisplay(EGL_DEFAULT_DISPLAY);
+-        }
+-#endif
+-
+         EGLDisplay idpy = disp.dpy;
+         if (cnx->egl.eglInitialize(idpy, &cnx->major, &cnx->minor)) {
+             //ALOGD("initialized dpy=%p, ver=%d.%d, cnx=%p",
+-- 
+1.7.9.5
+
