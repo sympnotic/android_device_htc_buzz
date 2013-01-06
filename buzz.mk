@@ -74,6 +74,7 @@ PRODUCT_PACKAGES += \
     gps.buzz \
     camera.buzz \
     audio.primary.buzz \
+    audio_policy.buzz \
     audio.a2dp.default
 
 # Gsm
