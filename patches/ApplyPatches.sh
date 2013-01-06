@@ -15,10 +15,10 @@ cp external_wpa_supplicant_6* ../../../../external/wpa_supplicant_6/
 cp packages_inputmethods_LatinIME* ../../../../packages/inputmethods/LatinIME/
 echo
 
-echo "framework patches are disabled"
+echo "cd frameworks/native/"
 cd ../../../../frameworks/native/
-#echo "apply patch"
-#git am *.patch
+echo "apply patch"
+git am *.patch
 echo
 
 echo "cd hardware/ril"
