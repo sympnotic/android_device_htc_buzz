@@ -111,8 +111,6 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
 
 # The gps config appropriate for this device
 $(call inherit-product, device/common/gps/gps_eu_supl.mk)
-$(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor.mk)
-$(call inherit-product-if-exists, vendor/htc/buzz/buzz-vendor-blobs.mk)
 
 # Interfaces
 PRODUCT_PROPERTY_OVERRIDES += \
