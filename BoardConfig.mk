@@ -106,7 +106,7 @@ BOARD_USES_AUDIO_LEGACY  := false
 
 # GPS
 BOARD_GPS_LIBRARIES := libgps librpc
-BOARD_USES_GPSSHIM  := true
+BOARD_USES_GPSSHIM_EVERVOLV  := true
 
 # bluetooth
 BOARD_HAVE_BLUETOOTH 	 := true

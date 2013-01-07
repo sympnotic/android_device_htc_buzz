@@ -1,4 +1,4 @@
-ifeq ($(BOARD_USES_GPSSHIM),true)
+ifeq ($(BOARD_USES_GPSSHIM_EVERVOLV),true)
 
 $(shell mkdir -p $(OUT)/obj/SHARED_LIBRARIES/libgps_intermediates/)
 $(shell touch $(OUT)/obj/SHARED_LIBRARIES/libgps_intermediates/export_includes)
