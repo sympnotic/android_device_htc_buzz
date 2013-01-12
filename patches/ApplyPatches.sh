@@ -1,22 +1,32 @@
 #!/bin/sh
 echo "removing old patches..."
 rm ../../../../frameworks/native/*.patch
+rm ../../../../frameworks/base/*.patch
 rm ../../../../hardware/ril/*.patch
 rm ../../../../hardware/qcom/display/*.patch
 rm ../../../../external/wpa_supplicant_6/*.patch
 rm ../../../../packages/inputmethods/LatinIME/*.patch
+rm ../../../../vendor/cm/*.patch
 
 echo
 echo "Copying files..."
 cp frameworks_native* ../../../../frameworks/native/
+cp frameworks_base* ../../../../frameworks/base/
 cp hardware_ril* ../../../../hardware/ril/
 cp hardware_qcom_display* ../../../../hardware/qcom/display/
 cp external_wpa_supplicant_6* ../../../../external/wpa_supplicant_6/
 cp packages_inputmethods_LatinIME* ../../../../packages/inputmethods/LatinIME/
+cp vendor_cm* ../../../../vendor/cm/
 echo
 
 echo "cd frameworks/native/"
 cd ../../../../frameworks/native/
+echo "apply patch"
+git am *.patch
+echo
+
+echo "cd frameworks/base/"
+cd ../../frameworks/base/
 echo "apply patch"
 git am *.patch
 echo
@@ -41,6 +51,12 @@ echo
 
 echo "cd packages/inputmethods/LatinIME/"
 cd ../../packages/inputmethods/LatinIME/
+echo "apply patch"
+git am *.patch
+echo
+
+echo "cd vendor/cm/"
+cd ../../../vendor/cm/
 echo "apply patch"
 git am *.patch
 echo
