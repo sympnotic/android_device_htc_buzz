@@ -27,7 +27,7 @@ index 09b3fb8..084fc28 100644
 -	$(LOCAL_PATH)/alarms/ogg/Nobelium.ogg:system/media/audio/alarms/Nobelium.ogg \
 -	$(LOCAL_PATH)/alarms/ogg/Plutonium.ogg:system/media/audio/alarms/Plutonium.ogg \
 -	$(LOCAL_PATH)/alarms/ogg/Scandium.ogg:system/media/audio/alarms/Scandium.ogg
-+	$(LOCAL_PATH)/alarms/ogg/Hassium.ogg:system/media/audio/alarms/Hassium.ogg 
++	$(LOCAL_PATH)/alarms/ogg/Hassium.ogg:system/media/audio/alarms/Hassium.ogg
  
  # Notifications
  PRODUCT_COPY_FILES += \
@@ -48,7 +48,7 @@ index 09b3fb8..084fc28 100644
 -	$(LOCAL_PATH)/notifications/ogg/Thallium.ogg:system/media/audio/notifications/Thallium.ogg \
 -	$(LOCAL_PATH)/notifications/ogg/Xenon.ogg:system/media/audio/notifications/Xenon.ogg \
 -	$(LOCAL_PATH)/notifications/ogg/Zirconium.ogg:system/media/audio/notifications/Zirconium.ogg
-+	$(LOCAL_PATH)/notifications/ogg/Antimony.ogg:system/media/audio/notifications/Antimony.ogg 
++	$(LOCAL_PATH)/notifications/ogg/Antimony.ogg:system/media/audio/notifications/Antimony.ogg
 diff --git a/data/sounds/AudioPackageStars.mk b/data/sounds/AudioPackageStars.mk
 index b62b6be..78b3067 100644
 --- a/data/sounds/AudioPackageStars.mk
@@ -86,7 +86,7 @@ index b62b6be..78b3067 100644
 -	$(LOCAL_PATH)/notifications/ogg/Tejat.ogg:system/media/audio/notifications/Tejat.ogg \
 -	$(LOCAL_PATH)/notifications/ogg/Upsilon.ogg:system/media/audio/notifications/Upsilon.ogg \
 -	$(LOCAL_PATH)/notifications/ogg/Vega.ogg:system/media/audio/notifications/Vega.ogg
-+	$(LOCAL_PATH)/notifications/ogg/Deneb.ogg:system/media/audio/notifications/Deneb.ogg 
++	$(LOCAL_PATH)/notifications/ogg/Deneb.ogg:system/media/audio/notifications/Deneb.ogg
  
  # Ringtones
  PRODUCT_COPY_FILES += \
@@ -121,7 +121,7 @@ index b62b6be..78b3067 100644
 -	$(LOCAL_PATH)/ringtones/ogg/UrsaMinor.ogg:system/media/audio/ringtones/UrsaMinor.ogg \
 -	$(LOCAL_PATH)/ringtones/ogg/Vespa.ogg:system/media/audio/ringtones/Vespa.ogg \
 -	$(LOCAL_PATH)/ringtones/ogg/Zeta.ogg:system/media/audio/ringtones/Zeta.ogg
-+	$(LOCAL_PATH)/ringtones/ogg/Orion.ogg:system/media/audio/ringtones/Orion.ogg 
++	$(LOCAL_PATH)/ringtones/ogg/Orion.ogg:system/media/audio/ringtones/Orion.ogg
 -- 
 1.7.9.5
 

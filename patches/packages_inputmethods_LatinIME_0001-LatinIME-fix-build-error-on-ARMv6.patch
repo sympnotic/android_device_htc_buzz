@@ -21,7 +21,7 @@ index 567648f..15f2040 100644
  
 -LOCAL_SDK_VERSION := 14
 -LOCAL_NDK_STL_VARIANT := stlport_static
-+ifdef HISTORICAL_NDK_VERSIONS_ROOT # In the platform build system	
++ifdef HISTORICAL_NDK_VERSIONS_ROOT # In the platform build system
 +    include external/stlport/libstlport.mk
 +else # In the NDK build system
 +    LOCAL_C_INCLUDES += external/stlport/stlport bionic
