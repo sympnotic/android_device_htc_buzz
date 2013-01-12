@@ -8,7 +8,7 @@ rm ../../../../packages/inputmethods/LatinIME/*.patch
 
 echo
 echo "Copying files..."
-#cp frameworks_native* ../../../../frameworks/native/
+cp frameworks_native* ../../../../frameworks/native/
 cp hardware_ril* ../../../../hardware/ril/
 cp hardware_qcom_display* ../../../../hardware/qcom/display/
 cp external_wpa_supplicant_6* ../../../../external/wpa_supplicant_6/
