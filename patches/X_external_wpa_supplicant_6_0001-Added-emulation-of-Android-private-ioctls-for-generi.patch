@@ -305,4 +305,3 @@ index b9f50ce..7546818 100644
  int wpa_driver_wext_get_ifflags(struct wpa_driver_wext_data *drv, int *flags);
 -- 
 1.7.9.5
-
