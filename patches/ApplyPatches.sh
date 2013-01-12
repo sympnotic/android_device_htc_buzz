@@ -39,8 +39,8 @@ echo
 
 echo "gralloc patch is disabled"
 cd ../../hardware/qcom/display/
-#echo "apply patch"
-#git am *.patch
+echo "apply patch"
+git am *.patch
 echo
 
 echo "cd external/wpa_supplicant_6/"
