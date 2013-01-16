@@ -77,12 +77,11 @@ PRODUCT_COPY_FILES += \
 # Bluetooth cfg file & BCM4329 firmware and module
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:system/etc/firmware/bcm4329.hcd \
-    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:root/etc/firmware/bcm4329.hcd \
     $(LOCAL_PATH)/prebuilt/firmware/bcm4329.hcd:system/vendor/firmware/bcm4329.hcd \
-    $(LOCAL_PATH)/prebuilt/firmware/bcm4329.ko:root/lib/modules/bcm4329.ko \
     $(LOCAL_PATH)/prebuilt/firmware/bcm4329.ko:system/lib/modules/bcm4329.ko \
     $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329.bin:vendor/firmware/fw_bcm4329.bin \
     $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329_apsta.bin:/vendor/firmware/fw_bcm4329_apsta.bin \
+    $(LOCAL_PATH)/prebuilt/wifi/bcm4329.ko:system/lib/modules/bcm4329.ko \
     $(LOCAL_PATH)/prebuilt/wpa_supplicant_template.conf:system/etc/wifi/wpa_supplicant.conf \
     system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
