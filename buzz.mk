@@ -53,8 +53,8 @@ PRODUCT_COPY_FILES += \
 DISABLE_DEXPREOPT := false
 PRODUCT_TAGS += dalvik.gc.type-precise
 
-# Include device specific overlays
-	DEVICE_PACKAGE_OVERLAYS := device/ldpi-common/overlay
+# Add device specific overlays
+	DEVICE_PACKAGE_OVERLAYS += device/ldpi-common/overlay
 
 # DPI size for Buzz
 	PRODUCT_LOCALES += mdpi
