@@ -87,6 +87,7 @@ PRODUCT_COPY_FILES += \
 
 # Media profile XML
 PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/media_codecs.xml:/system/etc/media_codecs.xml \
     $(LOCAL_PATH)/prebuilt/media_profiles.xml:/system/etc/media_profiles.xml
 
 # Audio_policy.conf
