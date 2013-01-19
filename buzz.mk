@@ -122,3 +122,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 #Attempting to get wifi to work
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcm4329/Android.mk)
+
+#Attempting to get a mobile connection
+$(call inherit-product, build/target/product/full_base_telephony.mk)
