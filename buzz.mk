@@ -22,6 +22,33 @@ endif
 PRODUCT_COPY_FILES += \
     $(LOCAL_KERNEL):kernel
 
+## Manually copy the proprietary files, as my vendor folder thasn't get read?
+
+# Prebuilt libraries that are needed to build open-source libraries
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libgps.so:obj/lib/libgps.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libcamera.so:obj/lib/libcamera.so
+
+# Proprietary stuff
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/AudioFilter.csv:system/etc/AudioFilter.csv \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/AudioPara4.csv:system/etc/AudioPara4.csv \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/AudioPara_HTC_NEL.csv:system/etc/AudioPara_HTC_NEL.csv \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/AudioPreProcess.csv:system/etc/AudioPreProcess.csv \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libaudioeq.so:system/lib/libaudioeq.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libgps.so:system/lib/libgps.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/liboemcamera.so:system/lib/liboemcamera.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libcamera.so:system/lib/libcamera.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libOmxH264Dec.so:system/lib/libOmxH264Dec.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libOmxMpeg4Dec.so:system/lib/libOmxMpeg4Dec.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libOmxVidEnc.so:system/lib/libOmxVidEnc.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libmm-adspsvc.so:system/lib/libmm-adspsvc.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libhtc_acoustic.so:system/lib/libhtc_acoustic.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/libhtc_ril.so:system/lib/libhtc_ril.so \
+    $(LOCAL_PATH)/../../../vendor/htc/buzz/proprietary/akmd:system/bin/akmd
+
+## end of the vendor files
+
 # Dalvik tweak
 DISABLE_DEXPREOPT := false
 PRODUCT_TAGS += dalvik.gc.type-precise
