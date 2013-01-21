@@ -105,8 +105,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/initramfs/init.buzz.rc:root/init.buzz.rc \
     $(LOCAL_PATH)/initramfs/init.buzz.usb.rc:root/init.buzz.usb.rc \
     $(LOCAL_PATH)/initramfs/ueventd.buzz.rc:root/ueventd.buzz.rc \
-    $(LOCAL_PATH)/initramfs/proc/sys/net/ipv6/conf/wlan0:root/proc/sys/net/ipv6/conf/ \
-    $(LOCAL_PATH)/initramfs/proc/sys/net/ipv6/conf/wlan0/disable_ipv6:root/proc/sys/net/ipv6/conf/disable_ipv6 \
     $(LOCAL_PATH)/vold.fstab:system/etc/vold.fstab
 	
 $(call inherit-product, $(SRC_TARGET_DIR)/product/full_base.mk)
