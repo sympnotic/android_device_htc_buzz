@@ -111,7 +111,7 @@ BOARD_USES_GPSSHIM_EVERVOLV  := true
 # bluetooth
 BOARD_HAVE_BLUETOOTH 	 := true
 BOARD_HAVE_BLUETOOTH_BCM := true
-BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/htc/buzz/bluetooth
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR := device/htc/buzz/prebuilt/bluetooth
 
 # touchscreen
 BOARD_USE_SKIA_LCDTEXT := true
