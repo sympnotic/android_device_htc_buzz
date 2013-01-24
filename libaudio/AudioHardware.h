@@ -1,5 +1,6 @@
 /*
 ** Copyright 2008, The Android Open-Source Project
+** Copyright (c) 2011, Code Aurora Forum. All rights reserved.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -30,6 +31,8 @@ extern "C" {
 }
 
 namespace android_audio_legacy {
+using android::SortedVector;
+using android::Mutex;
 
 // ----------------------------------------------------------------------------
 // Kernel driver interface
@@ -95,8 +98,11 @@ struct msm_audio_stats {
 #define AUDIO_HW_IN_BUFFERSIZE 2048                 // Default audio input buffer size
 #define AUDIO_HW_IN_FORMAT (AudioSystem::PCM_16_BIT)  // Default audio input sample format
 // ----------------------------------------------------------------------------
-
-
+using android_audio_legacy::AudioHardwareBase;
+using android_audio_legacy::AudioStreamOut;
+using android_audio_legacy::AudioStreamIn;
+using android_audio_legacy::AudioSystem;
+using android_audio_legacy::AudioHardwareInterface;
 class AudioHardware : public  AudioHardwareBase
 {
     class AudioStreamOutMSM72xx;
@@ -122,7 +128,6 @@ public:
     // create I/O streams
     virtual AudioStreamOut* openOutputStream(
                                 uint32_t devices,
-                                audio_output_flags_t flags,
                                 int *format=0,
                                 uint32_t *channels=0,
                                 uint32_t *sampleRate=0,
@@ -154,8 +159,7 @@ private:
     status_t    dumpInternals(int fd, const Vector<String16>& args);
     uint32_t    getInputSampleRate(uint32_t sampleRate);
     bool        checkOutputStandby();
-    status_t    doRouting();
-
+    status_t    doRouting(AudioStreamInMSM72xx *input);
     AudioStreamInMSM72xx*   getActiveInput_l();
 
     class AudioStreamOutMSM72xx : public AudioStreamOut {
@@ -172,7 +176,8 @@ private:
         virtual size_t      bufferSize() const { return 4800; }
         virtual uint32_t    channels() const { return AudioSystem::CHANNEL_OUT_STEREO; }
         virtual int         format() const { return AudioSystem::PCM_16_BIT; }
-        virtual uint32_t    latency() const { return (1000*AUDIO_HW_NUM_OUT_BUF*(bufferSize()/frameSize()))/sampleRate()+AUDIO_HW_OUT_LATENCY_MS; }
+//        virtual uint32_t    latency() const { return (1000*AUDIO_HW_NUM_OUT_BUF*(bufferSize()/frameSize()))/sampleRate()+AUDIO_HW_OUT_LATENCY_MS; }
+        virtual uint32_t    latency() const { return 109; }
         virtual status_t    setVolume(float left, float right) { return INVALID_OPERATION; }
         virtual ssize_t     write(const void* buffer, size_t bytes);
         virtual status_t    standby();
@@ -182,8 +187,8 @@ private:
         virtual String8     getParameters(const String8& keys);
                 uint32_t    devices() { return mDevices; }
         virtual status_t    getRenderPosition(uint32_t *dspFrames);
-        virtual status_t    addAudioEffect(effect_handle_t effect) { return INVALID_OPERATION; }
-        virtual status_t    removeAudioEffect(effect_handle_t effect) { return INVALID_OPERATION; }
+        virtual status_t    addAudioEffect(effect_handle_t effect){return INVALID_OPERATION;}
+        virtual status_t    removeAudioEffect(effect_handle_t effect){return INVALID_OPERATION;}
 
     private:
                 AudioHardware* mHardware;
@@ -223,8 +228,8 @@ private:
         virtual unsigned int  getInputFramesLost() const { return 0; }
                 uint32_t    devices() { return mDevices; }
                 int         state() const { return mState; }
-        virtual status_t    addAudioEffect(effect_handle_t effect) { return INVALID_OPERATION; }
-        virtual status_t    removeAudioEffect(effect_handle_t effect) { return INVALID_OPERATION; }
+        virtual status_t    addAudioEffect(effect_handle_t effect){return INVALID_OPERATION;}
+        virtual status_t    removeAudioEffect(effect_handle_t effect){return INVALID_OPERATION;}
 
     private:
                 AudioHardware* mHardware;
@@ -237,6 +242,8 @@ private:
                 size_t      mBufferSize;
                 AudioSystem::audio_in_acoustics mAcoustics;
                 uint32_t    mDevices;
+                bool        mFirstread;
+                static int InstanceCount;
     };
 
             static const uint32_t inputSamplingRates[];
@@ -245,29 +252,14 @@ private:
             bool        mBluetoothNrec;
             uint32_t    mBluetoothId;
             AudioStreamOutMSM72xx*  mOutput;
-            android::SortedVector <AudioStreamInMSM72xx*>   mInputs;
+            SortedVector <AudioStreamInMSM72xx*>   mInputs;
 
             msm_snd_endpoint *mSndEndpoints;
             int mNumSndEndpoints;
             int mCurSndDevice;
 
      friend class AudioStreamInMSM72xx;
-            android::Mutex       mLock;
-
-            int SND_DEVICE_CURRENT;
-            int SND_DEVICE_HANDSET;
-            int SND_DEVICE_SPEAKER;
-            int SND_DEVICE_HEADSET;
-            int SND_DEVICE_BT;
-            int SND_DEVICE_CARKIT;
-            int SND_DEVICE_TTY_FULL;
-            int SND_DEVICE_TTY_VCO;
-            int SND_DEVICE_TTY_HCO;
-            int SND_DEVICE_NO_MIC_HEADSET;
-            int SND_DEVICE_FM_HEADSET;
-            int SND_DEVICE_HEADSET_AND_SPEAKER;
-            int SND_DEVICE_FM_SPEAKER;
-            int SND_DEVICE_BT_EC_OFF;
+            Mutex       mLock;
 };
 
 // ----------------------------------------------------------------------------
