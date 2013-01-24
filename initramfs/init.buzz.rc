@@ -101,6 +101,8 @@ on fs
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
     chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
     chmod 0660 /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /dev/ttyHS0
+    chmod 0666 /dev/ttyHS0
 
     # bluetooth MAC address programming
     chown bluetooth bluetooth /sys/module/board_buzz/parameters/bdaddr
@@ -160,6 +162,11 @@ on property:service.modem.enable=1
 
 on property:service.modem.enable=0
     stop modem
+on property:bluetooth.hciattach=true
+    start hciattach
+
+on property:bluetooth.hciattach=false
+    setprop bluetooth.status off
 
 on property:init.svc.wpa_supplicant=stopped
     stop dhcpcd_wlan0
