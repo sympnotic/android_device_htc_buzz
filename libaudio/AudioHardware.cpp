@@ -1,6 +1,5 @@
 /*
 ** Copyright 2008, The Android Open-Source Project
-** Copyright (c) 2011, Code Aurora Forum. All rights reserved.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -17,7 +16,7 @@
 
 #include <math.h>
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "AudioHardwareMSM72XX"
 #include <utils/Log.h>
 #include <utils/String8.h>
@@ -29,7 +28,6 @@
 #include <sys/stat.h>
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <cutils/properties.h> // for property_get
 
 // hardware specific functions
 
@@ -44,28 +42,25 @@ static void * acoustic;
 const uint32_t AudioHardware::inputSamplingRates[] = {
         8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000
 };
-
-static uint32_t SND_DEVICE_CURRENT=-1;
-static uint32_t SND_DEVICE_HANDSET=-1;
-static uint32_t SND_DEVICE_SPEAKER=-1;
-static uint32_t SND_DEVICE_HEADSET=-1;
-static uint32_t SND_DEVICE_BT=-1;
-static uint32_t SND_DEVICE_CARKIT=-1;
-static uint32_t SND_DEVICE_TTY_FULL=-1;
-static uint32_t SND_DEVICE_TTY_HCO=-1;
-static uint32_t SND_DEVICE_TTY_VCO=-1;
-static uint32_t SND_DEVICE_NO_MIC_HEADSET=-1;
-static uint32_t SND_DEVICE_FM_HEADSET=-1;
-static uint32_t SND_DEVICE_FM_SPEAKER=-1;
-static uint32_t SND_DEVICE_HEADSET_AND_SPEAKER=-1;
-static uint32_t SND_DEVICE_BT_EC_OFF=-1;
-
 // ----------------------------------------------------------------------------
 
 AudioHardware::AudioHardware() :
     mInit(false), mMicMute(true), mBluetoothNrec(true), mBluetoothId(0),
-    mOutput(0), mSndEndpoints(NULL), mCurSndDevice(-1)
-
+    mOutput(0), mSndEndpoints(NULL), mCurSndDevice(-1),
+    SND_DEVICE_CURRENT(-1),
+    SND_DEVICE_HANDSET(-1),
+    SND_DEVICE_SPEAKER(-1),
+    SND_DEVICE_HEADSET(-1),
+    SND_DEVICE_BT(-1),
+    SND_DEVICE_CARKIT(-1),
+    SND_DEVICE_TTY_FULL(-1),
+    SND_DEVICE_TTY_VCO(-1),
+    SND_DEVICE_TTY_HCO(-1),
+    SND_DEVICE_NO_MIC_HEADSET(-1),
+    SND_DEVICE_FM_HEADSET(-1),
+    SND_DEVICE_HEADSET_AND_SPEAKER(-1),
+    SND_DEVICE_FM_SPEAKER(-1),
+    SND_DEVICE_BT_EC_OFF(-1)
 {
 
     int (*snd_get_num)();
@@ -160,10 +155,10 @@ status_t AudioHardware::initCheck()
 }
 
 AudioStreamOut* AudioHardware::openOutputStream(
-        uint32_t devices, int *format, uint32_t *channels, uint32_t *sampleRate, status_t *status)
+        uint32_t devices, audio_output_flags_t flags, int *format, uint32_t *channels, uint32_t *sampleRate, status_t *status)
 {
     { // scope for the lock
-        Mutex::Autolock lock(mLock);
+        android::Mutex::Autolock lock(mLock);
 
         AudioStreamOutMSM72xx* out;
         if (mOutput) {
@@ -188,7 +183,7 @@ AudioStreamOut* AudioHardware::openOutputStream(
 }
 
 void AudioHardware::closeOutputStream(AudioStreamOut* out) {
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
     if (mOutput == 0 || mOutput != out) {
         ALOGW("Attempt to close invalid output stream");
     }
@@ -227,7 +222,7 @@ AudioStreamIn* AudioHardware::openInputStream(
 }
 
 void AudioHardware::closeInputStream(AudioStreamIn* in) {
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
 
     ssize_t index = mInputs.indexOf((AudioStreamInMSM72xx *)in);
     if (index < 0) {
@@ -262,7 +257,7 @@ bool AudioHardware::checkOutputStandby()
 
 status_t AudioHardware::setMicMute(bool state)
 {
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
     return setMicMute_nosync(state);
 }
 
@@ -284,7 +279,7 @@ status_t AudioHardware::getMicMute(bool* state)
 
 status_t AudioHardware::setParameters(const String8& keyValuePairs)
 {
-    AudioParameter param = AudioParameter(keyValuePairs);
+    android::AudioParameter param = android::AudioParameter(keyValuePairs);
     String8 value;
     String8 key;
     const char BT_NREC_KEY[] = "bt_headset_nrec";
@@ -319,15 +314,16 @@ status_t AudioHardware::setParameters(const String8& keyValuePairs)
         if (mBluetoothId == 0) {
             ALOGI("Using default acoustic parameters "
                  "(%s not in acoustic database)", value.string());
-            doRouting(NULL);
+            doRouting();
         }
     }
+
     return NO_ERROR;
 }
 
 String8 AudioHardware::getParameters(const String8& keys)
 {
-    AudioParameter param = AudioParameter(keys);
+    android::AudioParameter param = android::AudioParameter(keys);
     return param.toString();
 }
 
@@ -350,7 +346,7 @@ static unsigned calculate_audpre_table_index(unsigned index)
 size_t AudioHardware::getInputBufferSize(uint32_t sampleRate, int format, int channelCount)
 {
     if (format != AudioSystem::PCM_16_BIT) {
-        ALOGW("getInputBufferSize bad format: 0x%x", format);
+        ALOGW("getInputBufferSize bad format: %d", format);
         return 0;
     }
     if (channelCount < 1 || channelCount > 2) {
@@ -414,14 +410,14 @@ status_t AudioHardware::setVoiceVolume(float v)
     ALOGD("setVoiceVolume(%f)\n", v);
     ALOGI("Setting in-call volume to %d (available range is 0 to 5)\n", vol);
 
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
     set_volume_rpc(SND_DEVICE_CURRENT, SND_METHOD_VOICE, vol);
     return NO_ERROR;
 }
 
 status_t AudioHardware::setMasterVolume(float v)
 {
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
     int vol = ceil(v * 5.0);
     ALOGI("Set master volume to %d.\n", vol);
     /*
@@ -492,24 +488,23 @@ status_t AudioHardware::doAudioRouteOrMute(uint32_t device)
                               mMode != AudioSystem::MODE_IN_CALL, mMicMute);
 }
 
-status_t AudioHardware::doRouting(AudioStreamInMSM72xx *input)
+status_t AudioHardware::doRouting()
 {
     /* currently this code doesn't work without the htc libacoustic */
     if (!acoustic)
         return 0;
 
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
     uint32_t outputDevices = mOutput->devices();
     status_t ret = NO_ERROR;
-    int sndDevice = -1;
     int (*msm72xx_enable_audpp)(int);
     msm72xx_enable_audpp = (int (*)(int))::dlsym(acoustic, "msm72xx_enable_audpp");
     int audProcess = (ADRC_DISABLE | EQ_DISABLE | RX_IIR_DISABLE);
+    AudioStreamInMSM72xx *input = getActiveInput_l();
+    uint32_t inputDevice = (input == NULL) ? 0 : input->devices();
+    int sndDevice = -1;
 
-
-
-    if (input != NULL) {
-        uint32_t inputDevice = input->devices();
+    if (inputDevice != 0) {
         ALOGI("do input routing device %x\n", inputDevice);
         if (inputDevice & AudioSystem::DEVICE_IN_BLUETOOTH_SCO_HEADSET) {
             ALOGI("Routing audio to Bluetooth PCM\n");
@@ -594,7 +589,7 @@ status_t AudioHardware::doRouting(AudioStreamInMSM72xx *input)
 
 status_t AudioHardware::checkMicMute()
 {
-    Mutex::Autolock lock(mLock);
+    android::Mutex::Autolock lock(mLock);
     if (mMode != AudioSystem::MODE_IN_CALL) {
         setMicMute_nosync(true);
     }
@@ -832,8 +827,8 @@ bool AudioHardware::AudioStreamOutMSM72xx::checkStandby()
 
 status_t AudioHardware::AudioStreamOutMSM72xx::setParameters(const String8& keyValuePairs)
 {
-    AudioParameter param = AudioParameter(keyValuePairs);
-    String8 key = String8(AudioParameter::keyRouting);
+    android::AudioParameter param = android::AudioParameter(keyValuePairs);
+    String8 key = String8(android::AudioParameter::keyRouting);
     status_t status = NO_ERROR;
     int device;
     ALOGV("AudioStreamOutMSM72xx::setParameters() %s", keyValuePairs.string());
@@ -841,7 +836,7 @@ status_t AudioHardware::AudioStreamOutMSM72xx::setParameters(const String8& keyV
     if (param.getInt(key, device) == NO_ERROR) {
         mDevices = device;
         ALOGV("set output routing %x", mDevices);
-        status = mHardware->doRouting(NULL);
+        status = mHardware->doRouting();
         param.remove(key);
     }
 
@@ -853,9 +848,9 @@ status_t AudioHardware::AudioStreamOutMSM72xx::setParameters(const String8& keyV
 
 String8 AudioHardware::AudioStreamOutMSM72xx::getParameters(const String8& keys)
 {
-    AudioParameter param = AudioParameter(keys);
+    android::AudioParameter param = android::AudioParameter(keys);
     String8 value;
-    String8 key = String8(AudioParameter::keyRouting);
+    String8 key = String8(android::AudioParameter::keyRouting);
 
     if (param.get(key, value) == NO_ERROR) {
         ALOGV("get routing %x", mDevices);
@@ -873,29 +868,21 @@ status_t AudioHardware::AudioStreamOutMSM72xx::getRenderPosition(uint32_t *dspFr
 }
 
 // ----------------------------------------------------------------------------
-int AudioHardware::AudioStreamInMSM72xx::InstanceCount = 0;
+
 AudioHardware::AudioStreamInMSM72xx::AudioStreamInMSM72xx() :
     mHardware(0), mFd(-1), mState(AUDIO_INPUT_CLOSED), mRetryCount(0),
     mFormat(AUDIO_HW_IN_FORMAT), mChannels(AUDIO_HW_IN_CHANNELS),
     mSampleRate(AUDIO_HW_IN_SAMPLERATE), mBufferSize(AUDIO_HW_IN_BUFFERSIZE),
     mAcoustics((AudioSystem::audio_in_acoustics)0), mDevices(0)
 {
-    AudioStreamInMSM72xx::InstanceCount++;
 }
 
 status_t AudioHardware::AudioStreamInMSM72xx::set(
         AudioHardware* hw, uint32_t devices, int *pFormat, uint32_t *pChannels, uint32_t *pRate,
         AudioSystem::audio_in_acoustics acoustic_flags)
 {
-    if(AudioStreamInMSM72xx::InstanceCount > 1)
-    {
-        ALOGE("More than one instance of recording not supported");
-        return -EBUSY;
-    }
-
     if (pFormat == 0 || *pFormat != AUDIO_HW_IN_FORMAT) {
         *pFormat = AUDIO_HW_IN_FORMAT;
-        ALOGE("audio format bad value");
         return BAD_VALUE;
     }
     if (pRate == 0) {
@@ -908,8 +895,7 @@ status_t AudioHardware::AudioStreamInMSM72xx::set(
     }
 
     if (pChannels == 0 || (*pChannels != AudioSystem::CHANNEL_IN_MONO &&
-        *pChannels != AudioSystem::CHANNEL_IN_STEREO)) 
-	{
+        *pChannels != AudioSystem::CHANNEL_IN_STEREO)) {
         *pChannels = AUDIO_HW_IN_CHANNELS;
         return BAD_VALUE;
     }
@@ -969,7 +955,6 @@ status_t AudioHardware::AudioStreamInMSM72xx::set(
     ALOGV("buffer_count: %u", config.buffer_count);
     ALOGV("channel_count: %u", config.channel_count);
     ALOGV("sample_rate: %u", config.sample_rate);
-    ALOGV("input device: %x", devices);
 
     mDevices = devices;
     mFormat = AUDIO_HW_IN_FORMAT;
@@ -1016,7 +1001,6 @@ Error:
 AudioHardware::AudioStreamInMSM72xx::~AudioStreamInMSM72xx()
 {
     ALOGV("AudioStreamInMSM72xx destructor");
-    AudioStreamInMSM72xx::InstanceCount--;
     standby();
 }
 
@@ -1029,18 +1013,17 @@ ssize_t AudioHardware::AudioStreamInMSM72xx::read( void* buffer, ssize_t bytes)
     uint8_t* p = static_cast<uint8_t*>(buffer);
 
     if (mState < AUDIO_INPUT_OPENED) {
-        Mutex::Autolock lock(mHardware->mLock);
+        android::Mutex::Autolock lock(mHardware->mLock);
         if (set(mHardware, mDevices, &mFormat, &mChannels, &mSampleRate, mAcoustics) != NO_ERROR) {
             return -1;
         }
-        mFirstread = false;
     }
 
     if (mState < AUDIO_INPUT_STARTED) {
         mState = AUDIO_INPUT_STARTED;
         // force routing to input device
         mHardware->clearCurDevice();
-        mHardware->doRouting(this);
+        mHardware->doRouting();
         if (ioctl(mFd, AUDIO_START, 0)) {
             ALOGE("Error starting record");
             standby();
@@ -1053,12 +1036,6 @@ ssize_t AudioHardware::AudioStreamInMSM72xx::read( void* buffer, ssize_t bytes)
         if (bytesRead >= 0) {
             count -= bytesRead;
             p += bytesRead;
-
-            if(!mFirstread)
-            {
-               mFirstread = true;
-               break;
-            }
         } else {
             if (errno != EAGAIN) return bytesRead;
             mRetryCount++;
@@ -1080,7 +1057,7 @@ status_t AudioHardware::AudioStreamInMSM72xx::standby()
     if (!mHardware) return -1;
     // restore output routing if necessary
     mHardware->clearCurDevice();
-    mHardware->doRouting(this);
+    mHardware->doRouting();
     return NO_ERROR;
 }
 
@@ -1112,8 +1089,8 @@ status_t AudioHardware::AudioStreamInMSM72xx::dump(int fd, const Vector<String16
 
 status_t AudioHardware::AudioStreamInMSM72xx::setParameters(const String8& keyValuePairs)
 {
-    AudioParameter param = AudioParameter(keyValuePairs);
-    String8 key = String8(AudioParameter::keyRouting);
+    android::AudioParameter param = android::AudioParameter(keyValuePairs);
+    String8 key = String8(android::AudioParameter::keyRouting);
     status_t status = NO_ERROR;
     int device;
     ALOGV("AudioStreamInMSM72xx::setParameters() %s", keyValuePairs.string());
@@ -1124,7 +1101,7 @@ status_t AudioHardware::AudioStreamInMSM72xx::setParameters(const String8& keyVa
             status = BAD_VALUE;
         } else {
             mDevices = device;
-            status = mHardware->doRouting(this);
+            status = mHardware->doRouting();
         }
         param.remove(key);
     }
@@ -1137,9 +1114,9 @@ status_t AudioHardware::AudioStreamInMSM72xx::setParameters(const String8& keyVa
 
 String8 AudioHardware::AudioStreamInMSM72xx::getParameters(const String8& keys)
 {
-    AudioParameter param = AudioParameter(keys);
+    android::AudioParameter param = android::AudioParameter(keys);
     String8 value;
-    String8 key = String8(AudioParameter::keyRouting);
+    String8 key = String8(android::AudioParameter::keyRouting);
 
     if (param.get(key, value) == NO_ERROR) {
         ALOGV("get routing %x", mDevices);
