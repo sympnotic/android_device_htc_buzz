@@ -5,7 +5,6 @@ rm ../../../../frameworks/base/*.patch
 rm ../../../../frameworks/opt/telephony/*.patch
 rm ../../../../hardware/ril/*.patch
 rm ../../../../hardware/qcom/display/*.patch
-rm ../../../../hardware/qcom/media/*.patch
 rm ../../../../external/wpa_supplicant_6/*.patch
 rm ../../../../packages/inputmethods/LatinIME/*.patch
 rm ../../../../vendor/cm/*.patch
@@ -17,7 +16,6 @@ cp frameworks_base* ../../../../frameworks/base/
 cp frameworks_opt_telephony* ../../../../frameworks/opt/telephony/
 cp hardware_ril* ../../../../hardware/ril/
 cp hardware_qcom_display* ../../../../hardware/qcom/display/
-cp hardware_qcom_media* ../../../../hardware/qcom/media/
 cp external_wpa_supplicant_6* ../../../../external/wpa_supplicant_6/
 cp packages_inputmethods_LatinIME* ../../../../packages/inputmethods/LatinIME/
 cp vendor_cm* ../../../../vendor/cm/
@@ -49,12 +47,6 @@ echo
 
 echo "gralloc patch is disabled"
 cd ../../hardware/qcom/display/
-echo "apply patch"
-git am *.patch
-echo
-
-echo "cd hardware/qcom/media"
-cd ../../../hardware/qcom/media/
 echo "apply patch"
 git am *.patch
 echo
