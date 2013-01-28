@@ -8,6 +8,7 @@ ifeq ($(TARGET_BOOTLOADER_BOARD_NAME),buzz)
         $(LOCAL_PATH)/liblights/Android.mk \
         $(LOCAL_PATH)/librpc/Android.mk \
         $(LOCAL_PATH)/libsensors/Android.mk \
+        $(LOCAL_PATH)/libstagefrighthw/Android.mk \
         $(LOCAL_PATH)/libcamera/Android.mk \
         $(LOCAL_PATH)/gpsshim/Android.mk \
         $(LOCAL_PATH)/recovery/offmode/Android.mk
