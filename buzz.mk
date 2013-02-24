@@ -87,7 +87,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329.bin:vendor/firmware/fw_bcm4329.bin \
     $(LOCAL_PATH)/prebuilt/firmware/fw_bcm4329_apsta.bin:/vendor/firmware/fw_bcm4329_apsta.bin \
     $(LOCAL_PATH)/prebuilt/wpa_supplicant_template.conf:data/misc/wifi/wpa_supplicant.conf \
-    $(LOCAL_PATH)/prebuilt/bluetooth/init.bt.sh:system/etc/init.bt.sh
+    $(LOCAL_PATH)/prebuilt/bluetooth/bt_vendor.conf:system/etc/bluetooth/bt_vendor.conf
 
 # Media profile XML
 PRODUCT_COPY_FILES += \

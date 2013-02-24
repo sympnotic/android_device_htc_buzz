@@ -159,6 +159,16 @@ service modem /system/xbin/wireless_modem
 on property:service.modem.enable=1
     start modem
 
+on property:init.svc.wpa_supplicant=stopped
+    stop dhcpcd_wlan0
+
+service hciattach /system/bin/brcm_patchram_plus --enable_hci --enable_lpm \
+    --baudrate 3000000 --patchram /etc/firmware/bcm4329.hcd /dev/ttyHS0
+    class main
+    user bluetooth
+    group bluetooth net_bt_admin
+    disabled
+
 on property:service.modem.enable=0
     stop modem
 on property:bluetooth.hciattach=true
@@ -166,9 +176,6 @@ on property:bluetooth.hciattach=true
 
 on property:bluetooth.hciattach=false
     setprop bluetooth.status off
-
-on property:init.svc.wpa_supplicant=stopped
-    stop dhcpcd_wlan0
 
 # compass/accelerometer daemon
 service akmd /system/bin/akmd
