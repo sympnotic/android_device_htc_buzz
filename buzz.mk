@@ -150,3 +150,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 #Attempting to get wifi to work
 $(call inherit-product-if-exists, hardware/broadcom/wlan/bcm4329/Android.mk)
+
+# Temp fix for audio
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/prebuilt/audio/audio.primary.buzz.so:system/lib/hw/audio.primary.buzz.so \
+    $(LOCAL_PATH)/prebuilt/audio/audio_policy.buzz.so:system/lib/hw/audio_policy.buzz.so
