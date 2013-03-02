@@ -64,8 +64,11 @@ persist.sys.use_dithering=2
 # Set default USB interface
 persist.sys.usb.config=mass_storage,adb
 
-# Enable debug mode by default
-persist.service.adb.enable=1
+# Enable ADB authentication
+ro.adb.secure=1
+
+# Set root for all ADB sessions
+ro.secure=0
 
 # enable software decoder for video
 sys.media.vdec.sw=1
