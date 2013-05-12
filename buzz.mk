@@ -58,6 +58,9 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 
 # DPI size for Buzz
 	PRODUCT_LOCALES += mdpi
+
+	PRODUCT_AAPT_CONFIG := normal ldpi mdpi
+	PRODUCT_AAPT_PREF_CONFIG := mdpi
 	
 # Input device calibration files
 PRODUCT_COPY_FILES += \
